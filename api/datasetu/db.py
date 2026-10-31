@@ -55,6 +55,7 @@ class DatasetStore:
         self._column_types: dict[str, str] = {}
         self.report: Any = None
         self._changelog: list[dict[str, Any]] = []
+        self.catalog: dict[str, dict[str, Any]] = {}
 
     def load(self, table: pa.Table, report: Any = None, version: str = "1.0.0") -> None:
         """Initializes or reloads the active dataset from a PyArrow Table."""
@@ -91,6 +92,19 @@ class DatasetStore:
                     pass
 
         self._create_clean_views()
+
+        # Update primary master entry in multi-dataset catalog
+        self.catalog["master"] = {
+            "id": "master",
+            "title": "National Bharat Governance Master (All-India 2023-2026)",
+            "description": "Unified multi-sector governance dataset covering all 780+ districts across 36 States/UTs and 20+ flagship welfare schemes.",
+            "rows": len(table),
+            "columns": self._columns,
+            "table_name": self.table_name,
+            "tags": ["National", "Welfare", "Multi-Sector", "All-India", "Primary"],
+            "version": self.version,
+            "active": True
+        }
 
     def _create_clean_views(self) -> None:
         """Creates or replaces 'dataset' and 'current' views with clean semantic aliases."""
@@ -165,6 +179,19 @@ class DatasetStore:
                     pass
 
         self._create_clean_views()
+
+        # Update primary master entry in multi-dataset catalog
+        self.catalog["master"] = {
+            "id": "master",
+            "title": "National Bharat Governance Master (All-India 2023-2026)",
+            "description": "Unified multi-sector governance dataset covering all 780+ districts across 36 States/UTs and 20+ flagship welfare schemes.",
+            "rows": len(new_table),
+            "columns": self._columns,
+            "table_name": self.table_name,
+            "tags": ["National", "Welfare", "Multi-Sector", "All-India", "Primary"],
+            "version": self.version,
+            "active": True
+        }
 
         self._changelog.append({
             "version": self.version,
@@ -553,4 +580,126 @@ class DatasetStore:
             "total_rows": total_count,
             "columns": stats,
             "grouped": grouped_result,
+        }
+
+    def register_dataset(self, dataset_id: str, table: pa.Table, metadata: dict[str, Any] | None = None) -> None:
+        """Registers a named dataset into the multi-dataset catalog."""
+        clean_id = dataset_id.lower().replace("-", "_").replace(" ", "_")
+        target_table = f"tbl_{clean_id}"
+
+        self.conn.register("_staging_reg", table)
+        self.conn.execute(f"DROP TABLE IF EXISTS {target_table}")
+        self.conn.execute(f"CREATE TABLE {target_table} AS SELECT * FROM _staging_reg")
+        self.conn.unregister("_staging_reg")
+
+        cols = [field.name for field in table.schema]
+        meta = metadata or {}
+        self.catalog[clean_id] = {
+            "id": clean_id,
+            "title": meta.get("title", dataset_id.replace("_", " ").title()),
+            "description": meta.get("description", f"Catalog dataset for {dataset_id}"),
+            "rows": len(table),
+            "columns": cols,
+            "table_name": target_table,
+            "tags": meta.get("tags", ["Catalog"]),
+            "version": "1.0.0",
+            "active": False
+        }
+
+    def list_catalog(self) -> list[dict[str, Any]]:
+        """Returns the list of all datasets currently registered in the catalog."""
+        return list(self.catalog.values())
+
+    def execute_sql(self, sql_query: str, max_rows: int = 1000) -> QueryResult:
+        """Executes a sanitized, read-only SQL query against the in-memory DuckDB database."""
+        start_time = time.perf_counter()
+        if not sql_query or not sql_query.strip():
+            raise ValueError("Query string cannot be empty.")
+
+        q_clean = sql_query.strip()
+        # Enforce single statement (prevent SQL injection via statement stacking)
+        statements = [s for s in q_clean.split(";") if s.strip()]
+        if len(statements) > 1:
+            raise ValueError("Multiple SQL statements are not permitted.")
+        statement = statements[0]
+
+        # Security check: strictly read-only
+        statement_upper = statement.upper()
+        if not (statement_upper.startswith("SELECT") or statement_upper.startswith("WITH")):
+            raise ValueError("Only read-only SELECT and WITH queries are permitted.")
+
+        forbidden = {
+            "DROP", "DELETE", "UPDATE", "INSERT", "ALTER", "CREATE", "REPLACE",
+            "TRUNCATE", "ATTACH", "DETACH", "COPY", "PRAGMA", "CALL", "EXPORT",
+            "IMPORT", "LOAD", "INSTALL", "SET", "RESET", "VACUUM", "CHECKPOINT"
+        }
+        tokens = set(statement_upper.replace("(", " ").replace(")", " ").replace(",", " ").split())
+        blocked = forbidden.intersection(tokens)
+        if blocked:
+            raise ValueError(f"Prohibited SQL operation: {', '.join(blocked)}")
+
+        # Enforce max limit if no limit is present
+        if "LIMIT" not in statement_upper:
+            statement = f"{statement} LIMIT {min(max(1, max_rows), 5000)}"
+
+        try:
+            cursor = self.conn.execute(statement)
+            cols = [desc[0] for desc in cursor.description]
+            raw_rows = cursor.fetchmany(max_rows)
+            rows = [dict(zip(cols, row)) for row in raw_rows]
+            query_ms = round((time.perf_counter() - start_time) * 1000, 2)
+            return QueryResult(rows=rows, total=len(rows), query_ms=query_ms)
+        except Exception as e:
+            raise ValueError(f"SQL Execution Error: {str(e)}")
+
+    def export_geojson(self, query_limit: int = 1000) -> dict[str, Any]:
+        """Synthesizes standard RFC 7946 GeoJSON FeatureCollection with district centroids."""
+        res = self.query(limit=query_limit)
+
+        import json
+        from pathlib import Path
+        gaz_path = Path(__file__).parent / "data" / "lgd_districts.json"
+        centroids: dict[int, tuple[float, float]] = {}
+        named_centroids: dict[tuple[str, str], tuple[float, float]] = {}
+        if gaz_path.exists():
+            with open(gaz_path, "r", encoding="utf-8") as f:
+                gdata = json.load(f)
+            for d in gdata.get("districts", []):
+                code = d.get("district_code")
+                lat = d.get("latitude")
+                lon = d.get("longitude")
+                if lat and lon:
+                    if code:
+                        centroids[code] = (lon, lat)
+                    named_centroids[(d["canonical_name"].lower(), d["state_name"].lower())] = (lon, lat)
+
+        features = []
+        for row in res.rows:
+            dist_code = row.get("lgd_district_code")
+            dist_name = row.get("Administrative Units - District Name") or row.get("district") or ""
+            state_name = row.get("Administrative Units - State Name") or row.get("state") or ""
+            coords = None
+            if dist_code and dist_code in centroids:
+                coords = centroids[dist_code]
+            elif (dist_name.lower(), state_name.lower()) in named_centroids:
+                coords = named_centroids[(dist_name.lower(), state_name.lower())]
+
+            if coords:
+                features.append({
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [coords[0], coords[1]]
+                    },
+                    "properties": row
+                })
+
+        return {
+            "type": "FeatureCollection",
+            "features": features,
+            "meta": {
+                "total_features": len(features),
+                "dataset": self.dataset_name,
+                "version": self.version
+            }
         }

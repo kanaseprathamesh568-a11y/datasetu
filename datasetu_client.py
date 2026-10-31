@@ -49,6 +49,7 @@ class DatasetRecord:
     execution___audit___actual_expenditure_incurred: Optional[float] = None
     impact_metrics___beneficiaries_reached: Optional[int] = None
     audit___monitoring___performance_lifecycle_status: Optional[str] = None
+    fiscal_planning___target_financial_year: Optional[str] = None
     lgd_state_code: Optional[int] = None
     lgd_district_code: Optional[int] = None
     lgd_district_name: Optional[str] = None
@@ -70,6 +71,7 @@ class DatasetRecord:
             execution___audit___actual_expenditure_incurred=data.get("Execution & Audit - Actual Expenditure Incurred"),
             impact_metrics___beneficiaries_reached=data.get("Impact Metrics - Beneficiaries Reached"),
             audit___monitoring___performance_lifecycle_status=data.get("Audit & Monitoring - Performance Lifecycle Status"),
+            fiscal_planning___target_financial_year=data.get("Fiscal Planning - Target Financial Year"),
             lgd_state_code=data.get("lgd_state_code"),
             lgd_district_code=data.get("lgd_district_code"),
             lgd_district_name=data.get("lgd_district_name"),
@@ -91,6 +93,7 @@ class DatasetRecord:
             "Execution & Audit - Actual Expenditure Incurred": self.execution___audit___actual_expenditure_incurred,
             "Impact Metrics - Beneficiaries Reached": self.impact_metrics___beneficiaries_reached,
             "Audit & Monitoring - Performance Lifecycle Status": self.audit___monitoring___performance_lifecycle_status,
+            "Fiscal Planning - Target Financial Year": self.fiscal_planning___target_financial_year,
             "lgd_state_code": self.lgd_state_code,
             "lgd_district_code": self.lgd_district_code,
             "lgd_district_name": self.lgd_district_name,

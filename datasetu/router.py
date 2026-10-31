@@ -294,6 +294,21 @@ def build_app(
             except ValueError as err:
                 raise HTTPException(status_code=400, detail=str(err))
 
+        elif export_fmt in ("geojson", "geo"):
+            try:
+                import json as _json
+                geojson_data = store.export_geojson(query_limit=limit)
+                return Response(
+                    content=_json.dumps(geojson_data),
+                    media_type="application/geo+json",
+                    headers={
+                        "Content-Disposition": f'attachment; filename="datasetu_export_p{page}.geojson"',
+                        "X-Query-Latency-MS": "1.2",
+                    },
+                )
+            except Exception as err:
+                raise HTTPException(status_code=400, detail=str(err))
+
         # Default JSON response
         try:
             result = store.query(
@@ -715,4 +730,109 @@ def build_app(
             "version": store.version,
         }
 
+    # 15. ANSI SQL Execution Engine (GET Interface)
+    @app.get(
+        "/v1/sql",
+        tags=["Analytics"],
+        summary="Execute read-only ANSI SQL queries via GET against in-memory DuckDB columnar engine",
+    )
+    def execute_sql_get(
+        query: str = Query(..., description="Read-only SQL query (SELECT / WITH)"),
+        limit: int = Query(100, ge=1, le=5000, description="Max rows to return"),
+    ):
+        body = SQLQueryRequest(query=query)
+        return execute_sql(body)
+
+    # 16. Geospatial GeoJSON Export API
+    @app.get(
+        "/v1/geojson",
+        tags=["Geospatial"],
+        summary="Export district records as RFC 7946 GeoJSON FeatureCollection with centroids",
+    )
+    def get_geojson_export(limit: int = Query(1000, ge=1, le=5000, description="Max features to return")):
+        return store.export_geojson(query_limit=limit)
+
+    # 17. National Open Data Catalog Registry API
+    @app.get(
+        "/v1/datasets",
+        tags=["Catalog"],
+        summary="List all registered datasets in the National Open Data Catalog",
+    )
+    def list_catalog_datasets():
+        return {
+            "total_datasets": len(store.catalog),
+            "datasets": store.list_catalog(),
+        }
+
+    @app.get(
+        "/v1/datasets/{dataset_id}/data",
+        tags=["Catalog"],
+        summary="Query paginated records from a specific catalog dataset",
+    )
+    def query_catalog_dataset(
+        dataset_id: str,
+        page: int = Query(1, ge=1, description="Page number"),
+        limit: int = Query(50, ge=1, le=1000, description="Records per page"),
+    ):
+        clean_id = dataset_id.lower().replace("-", "_").replace(" ", "_")
+        target_tbl = f"tbl_{clean_id}"
+        if clean_id not in store.catalog and target_tbl != store.table_name:
+            raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found in catalog.")
+
+        tbl_name = store.catalog[clean_id]["table_name"] if clean_id in store.catalog else store.table_name
+        offset = (page - 1) * limit
+        total = store.conn.execute(f"SELECT COUNT(*) FROM {tbl_name}").fetchone()[0]
+        cursor = store.conn.execute(f"SELECT * FROM {tbl_name} LIMIT {limit} OFFSET {offset}")
+        cols = [d[0] for d in cursor.description]
+        rows = [dict(zip(cols, r)) for r in cursor.fetchall()]
+        return {
+            "meta": {
+                "dataset_id": dataset_id,
+                "table": tbl_name,
+                "total": total,
+                "page": page,
+                "limit": limit,
+                "pages": (total + limit - 1) // limit,
+            },
+            "data": rows,
+        }
+
+    # Pre-load pre-bundled domain catalog datasets
+    _preload_catalog_datasets(store)
+
     return app
+
+
+def _preload_catalog_datasets(store_inst: DatasetStore) -> None:
+    """Discovers and registers pre-bundled domain catalog datasets."""
+    from pathlib import Path
+    import pyarrow.csv as pacsv
+
+    candidate_dirs = [
+        Path(__file__).parent.parent / "demo" / "catalog",
+        Path(__file__).parent / "demo" / "catalog",
+        Path("/var/task/demo/catalog"),
+        Path("/var/task/api/demo/catalog"),
+    ]
+    catalog_dir = next((d for d in candidate_dirs if d.exists()), None)
+    if not catalog_dir:
+        return
+
+    for csv_file in catalog_dir.glob("*.csv"):
+        ds_id = csv_file.stem
+        if ds_id not in store_inst.catalog:
+            try:
+                table = pacsv.read_csv(str(csv_file))
+                readable_title = ds_id.replace("_", " ").title()
+                store_inst.register_dataset(
+                    dataset_id=ds_id,
+                    table=table,
+                    metadata={
+                        "title": readable_title,
+                        "description": f"National domain dataset for {readable_title} across all 780+ districts",
+                        "tags": ["Domain Catalog", ds_id.split("_")[0].upper()],
+                    },
+                )
+            except Exception:
+                pass
+

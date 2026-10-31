@@ -304,7 +304,7 @@ class LGDGazetteer:
         if exact_cands:
             if len(exact_cands) == 1:
                 d = exact_cands[0]
-                if self._state_matches(d, state_hint):
+                if self._state_matches(d, state_hint) or state_hint is None:
                     return LGDMatch(
                         d["state_code"],
                         d["district_code"],
@@ -316,30 +316,8 @@ class LGDGazetteer:
                         review_reason=None,
                         confidence_tier="high",
                     )
-                elif state_hint is None:
-                    return LGDMatch(
-                        d["state_code"],
-                        d["district_code"],
-                        d["canonical_name"],
-                        "exact",
-                        1.0,
-                        d.get("state_name"),
-                        needs_review=False,
-                        review_reason=None,
-                        confidence_tier="high",
-                    )
-                else:
-                    return LGDMatch(
-                        None,
-                        None,
-                        None,
-                        "unmatched",
-                        0.0,
-                        state_name=d.get("state_name"),
-                        needs_review=True,
-                        review_reason=f"District '{name}' belongs to {d.get('state_name')} (does not match state hint '{state_hint}')",
-                        confidence_tier="none",
-                    )
+                # If state_hint provided doesn't match this exact candidate, don't abort immediately.
+                # It might be an alias for a district in the hinted state (e.g. Bijapur in Karnataka -> Vijayapura).
             else:
                 # Multiple same-named districts in different states (e.g. Bilaspur in HP vs CG)
                 if state_hint:
@@ -377,9 +355,10 @@ class LGDGazetteer:
                 alias_cands.append(d)
 
         if alias_cands:
-            if len(alias_cands) == 1:
-                d = alias_cands[0]
-                if self._state_matches(d, state_hint) or state_hint is None:
+            if state_hint:
+                hinted = [d for d in alias_cands if self._state_matches(d, state_hint)]
+                if len(hinted) == 1:
+                    d = hinted[0]
                     return LGDMatch(
                         d["state_code"],
                         d["district_code"],
@@ -391,45 +370,46 @@ class LGDGazetteer:
                         review_reason=None,
                         confidence_tier="high",
                     )
-                else:
-                    return LGDMatch(
-                        None,
-                        None,
-                        None,
-                        "unmatched",
-                        0.0,
-                        state_name=d.get("state_name"),
-                        needs_review=True,
-                        review_reason=f"Alias '{name}' resolved to {d.get('canonical_name')} in {d.get('state_name')} (mismatched state hint '{state_hint}')",
-                        confidence_tier="none",
-                    )
-            else:
-                if state_hint:
-                    hinted = [d for d in alias_cands if self._state_matches(d, state_hint)]
-                    if len(hinted) == 1:
-                        d = hinted[0]
-                        return LGDMatch(
-                            d["state_code"],
-                            d["district_code"],
-                            d["canonical_name"],
-                            "alias",
-                            1.0,
-                            d.get("state_name"),
-                            needs_review=False,
-                            review_reason=None,
-                            confidence_tier="high",
-                        )
-                states_found = ", ".join(d.get("state_name", "Unknown") for d in alias_cands)
+            elif len(alias_cands) == 1:
+                d = alias_cands[0]
                 return LGDMatch(
-                    None,
-                    None,
-                    None,
-                    "unmatched",
-                    0.0,
-                    needs_review=True,
-                    review_reason=f"Ambiguous alias '{name}' matches districts in multiple states ({states_found}). State hint required.",
-                    confidence_tier="none",
+                    d["state_code"],
+                    d["district_code"],
+                    d["canonical_name"],
+                    "alias",
+                    1.0,
+                    d.get("state_name"),
+                    needs_review=False,
+                    review_reason=None,
+                    confidence_tier="high",
                 )
+
+            states_found = ", ".join(d.get("state_name", "Unknown") for d in alias_cands)
+            return LGDMatch(
+                None,
+                None,
+                None,
+                "unmatched",
+                0.0,
+                needs_review=True,
+                review_reason=f"Ambiguous alias '{name}' matches districts in multiple states ({states_found}). State hint required.",
+                confidence_tier="none",
+            )
+
+        # If exact match candidate existed but didn't match the state hint, report it now
+        if exact_cands and len(exact_cands) == 1 and state_hint:
+            d = exact_cands[0]
+            return LGDMatch(
+                None,
+                None,
+                None,
+                "unmatched",
+                0.0,
+                state_name=d.get("state_name"),
+                needs_review=True,
+                review_reason=f"District '{name}' belongs to {d.get('state_name')} (does not match state hint '{state_hint}')",
+                confidence_tier="none",
+            )
 
         # 3. Deterministic Fuzzy Match
         pool = self.districts

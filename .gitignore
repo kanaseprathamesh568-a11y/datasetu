@@ -55,3 +55,4 @@ generated/
 
 # Local secrets
 .env
+.vercel

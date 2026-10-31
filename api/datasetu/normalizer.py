@@ -42,7 +42,7 @@ from rapidfuzz import fuzz
 
 @dataclass
 class LGDMatch:
-    """Result of an LGD district entity resolution query."""
+    """Result of an LGD district entity resolution query with safety flags."""
 
     state_code: Optional[int]
     district_code: Optional[int]
@@ -50,6 +50,9 @@ class LGDMatch:
     method: str  # "exact", "alias", "fuzzy", or "unmatched"
     score: float  # 1.0 for exact/alias, 0.0 - 1.0 for fuzzy/unmatched
     state_name: Optional[str] = None
+    needs_review: bool = False
+    review_reason: Optional[str] = None
+    confidence_tier: str = "none"  # "high", "medium", "low", "none"
 
 
 @dataclass
@@ -73,6 +76,8 @@ class DistrictMatchStats:
     matched_alias: int
     matched_fuzzy: int
     unmatched: int
+    needs_review: int = 0
+    safe_matches: int = 0
     unmatched_names: List[str] = field(default_factory=list)
 
 
@@ -112,6 +117,8 @@ class NormalizationReport:
                 "matched_alias": self.district_stats.matched_alias,
                 "matched_fuzzy": self.district_stats.matched_fuzzy,
                 "unmatched": self.district_stats.unmatched,
+                "needs_review": getattr(self.district_stats, "needs_review", 0),
+                "safe_matches": getattr(self.district_stats, "safe_matches", 0),
                 "unmatched_names": self.district_stats.unmatched_names,
             },
             "timings_ms": self.timings_ms,
@@ -270,18 +277,24 @@ class LGDGazetteer:
     def resolve(self, name: str, state_hint: Optional[str] = None) -> LGDMatch:
         """Resolve a raw district name to canonical LGD entity.
 
-        Matching order:
+        Matching order with safety guards:
         1. Exact normalized name
+           - If 1 candidate matches state hint (or no state hint): high confidence, safe.
+           - If multiple candidates across states (e.g. Bilaspur in HP vs CG): NEVER guess, flag needs_review=True.
         2. Alias table match
+           - Same safe disambiguation rules.
         3. Deterministic fuzzy match (rapidfuzz, fixed cutoff)
-        4. Unmatched
+           - Score >= 90% with confirmed state hint: medium confidence, safe.
+           - Score 80-89% or missing state hint: low confidence, flag needs_review=True.
+        4. Unmatched (< 80%):
+           - Never guess, flag needs_review=True.
         """
         if not name:
-            return LGDMatch(None, None, None, "unmatched", 0.0)
+            return LGDMatch(None, None, None, "unmatched", 0.0, needs_review=True, review_reason="Empty district name", confidence_tier="none")
 
         norm_q = normalize_text(name)
         if not norm_q:
-            return LGDMatch(None, None, None, "unmatched", 0.0)
+            return LGDMatch(None, None, None, "unmatched", 0.0, needs_review=True, review_reason="Blank district name after normalization", confidence_tier="none")
 
         # 1. Exact canonical name match
         exact_cands = [
@@ -291,7 +304,7 @@ class LGDGazetteer:
         if exact_cands:
             if len(exact_cands) == 1:
                 d = exact_cands[0]
-                if self._state_matches(d, state_hint) or state_hint is None:
+                if self._state_matches(d, state_hint):
                     return LGDMatch(
                         d["state_code"],
                         d["district_code"],
@@ -299,6 +312,33 @@ class LGDGazetteer:
                         "exact",
                         1.0,
                         d.get("state_name"),
+                        needs_review=False,
+                        review_reason=None,
+                        confidence_tier="high",
+                    )
+                elif state_hint is None:
+                    return LGDMatch(
+                        d["state_code"],
+                        d["district_code"],
+                        d["canonical_name"],
+                        "exact",
+                        1.0,
+                        d.get("state_name"),
+                        needs_review=False,
+                        review_reason=None,
+                        confidence_tier="high",
+                    )
+                else:
+                    return LGDMatch(
+                        None,
+                        None,
+                        None,
+                        "unmatched",
+                        0.0,
+                        state_name=d.get("state_name"),
+                        needs_review=True,
+                        review_reason=f"District '{name}' belongs to {d.get('state_name')} (does not match state hint '{state_hint}')",
+                        confidence_tier="none",
                     )
             else:
                 # Multiple same-named districts in different states (e.g. Bilaspur in HP vs CG)
@@ -313,9 +353,21 @@ class LGDGazetteer:
                             "exact",
                             1.0,
                             d.get("state_name"),
+                            needs_review=False,
+                            review_reason=None,
+                            confidence_tier="high",
                         )
-                # Ambiguous with no matching state hint -> never guess
-                return LGDMatch(None, None, None, "unmatched", 0.0)
+                states_found = ", ".join(d.get("state_name", "Unknown") for d in exact_cands)
+                return LGDMatch(
+                    None,
+                    None,
+                    None,
+                    "unmatched",
+                    0.0,
+                    needs_review=True,
+                    review_reason=f"Ambiguous: District '{name}' exists in multiple states ({states_found}). State hint required.",
+                    confidence_tier="none",
+                )
 
         # 2. Alias match
         alias_cands = []
@@ -335,6 +387,21 @@ class LGDGazetteer:
                         "alias",
                         1.0,
                         d.get("state_name"),
+                        needs_review=False,
+                        review_reason=None,
+                        confidence_tier="high",
+                    )
+                else:
+                    return LGDMatch(
+                        None,
+                        None,
+                        None,
+                        "unmatched",
+                        0.0,
+                        state_name=d.get("state_name"),
+                        needs_review=True,
+                        review_reason=f"Alias '{name}' resolved to {d.get('canonical_name')} in {d.get('state_name')} (mismatched state hint '{state_hint}')",
+                        confidence_tier="none",
                     )
             else:
                 if state_hint:
@@ -348,8 +415,21 @@ class LGDGazetteer:
                             "alias",
                             1.0,
                             d.get("state_name"),
+                            needs_review=False,
+                            review_reason=None,
+                            confidence_tier="high",
                         )
-                return LGDMatch(None, None, None, "unmatched", 0.0)
+                states_found = ", ".join(d.get("state_name", "Unknown") for d in alias_cands)
+                return LGDMatch(
+                    None,
+                    None,
+                    None,
+                    "unmatched",
+                    0.0,
+                    needs_review=True,
+                    review_reason=f"Ambiguous alias '{name}' matches districts in multiple states ({states_found}). State hint required.",
+                    confidence_tier="none",
+                )
 
         # 3. Deterministic Fuzzy Match
         pool = self.districts
@@ -372,16 +452,40 @@ class LGDGazetteer:
 
         # Fixed deterministic threshold: 80.0
         if best_dist and best_score >= 80.0:
+            score_float = round(best_score / 100.0, 3)
+            # High-confidence fuzzy match with confirmed state hint
+            if best_score >= 90.0 and state_hint and self._state_matches(best_dist, state_hint):
+                needs_review = False
+                reason = None
+                tier = "medium"
+            else:
+                needs_review = True
+                reason = f"Fuzzy match '{name}' -> '{best_dist['canonical_name']}' ({best_score:.0f}% confidence). Verification suggested."
+                tier = "low"
+
             return LGDMatch(
                 best_dist["state_code"],
                 best_dist["district_code"],
                 best_dist["canonical_name"],
                 "fuzzy",
-                round(best_score / 100.0, 3),
+                score_float,
                 best_dist.get("state_name"),
+                needs_review=needs_review,
+                review_reason=reason,
+                confidence_tier=tier,
             )
 
-        return LGDMatch(None, None, None, "unmatched", 0.0)
+        best_cand_name = best_dist["canonical_name"] if best_dist else "none"
+        return LGDMatch(
+            None,
+            None,
+            None,
+            "unmatched",
+            0.0,
+            needs_review=True,
+            review_reason=f"No matching district in LGD gazetteer (closest: '{best_cand_name}' at {best_score:.0f}%)",
+            confidence_tier="none",
+        )
 
 
 def _detect_district_and_state_cols(columns: List[str]) -> Tuple[Optional[str], Optional[str]]:
@@ -391,11 +495,13 @@ def _detect_district_and_state_cols(columns: List[str]) -> Tuple[Optional[str], 
 
     for col in columns:
         col_lower = col.lower()
-        if dist_col is None and any(term in col_lower for term in ("district", "dist_name", "district_name")):
+        if dist_col is None and any(term in col_lower for term in ("district", "dist_name", "district_name", "dist")):
             dist_col = col
-        if state_col is None and any(term in col_lower for term in ("state", "st_name", "state_name")):
-            # Don't pick if it contains 'status' or 'statistic'
-            if "status" not in col_lower and "stat" not in col_lower:
+        if state_col is None and any(term in col_lower for term in ("state", "st_name", "state_name", "state/ut")):
+            # Don't pick if it refers to status or statistics or station
+            bad_terms = ("status", "statistic", "stats", "statement", "station")
+            words = col_lower.replace("-", " ").replace("_", " ").split()
+            if not any(bad in words for bad in bad_terms):
                 state_col = col
 
     return dist_col, state_col
@@ -438,6 +544,11 @@ def normalize(
     lgd_district_names: List[Optional[str]] = []
     lgd_match_methods: List[str] = []
     lgd_match_scores: List[float] = []
+    lgd_needs_reviews: List[bool] = []
+    lgd_review_reasons: List[Optional[str]] = []
+    lgd_confidence_tiers: List[str] = []
+    needs_review_count = 0
+    safe_matches_count = 0
 
     if dist_col is not None:
         dist_vals = table[dist_col].to_pylist()
@@ -450,6 +561,14 @@ def normalize(
             lgd_district_names.append(match.canonical_name)
             lgd_match_methods.append(match.method)
             lgd_match_scores.append(match.score)
+            lgd_needs_reviews.append(match.needs_review)
+            lgd_review_reasons.append(match.review_reason)
+            lgd_confidence_tiers.append(match.confidence_tier)
+
+            if match.needs_review:
+                needs_review_count += 1
+            else:
+                safe_matches_count += 1
 
             if match.method == "exact":
                 matched_exact += 1
@@ -465,7 +584,7 @@ def normalize(
         total_districts = len(dist_vals)
         notes.append(
             f"LGD district matching resolved {matched_exact + matched_alias + matched_fuzzy}/{total_districts} "
-            f"districts ({matched_exact} exact, {matched_alias} alias, {matched_fuzzy} fuzzy, {unmatched_count} unmatched)"
+            f"districts ({matched_exact} exact, {matched_alias} alias, {matched_fuzzy} fuzzy, {unmatched_count} unmatched, {needs_review_count} flagged for review)"
         )
     else:
         total_districts = 0
@@ -479,6 +598,8 @@ def normalize(
         matched_alias=matched_alias,
         matched_fuzzy=matched_fuzzy,
         unmatched=unmatched_count,
+        needs_review=needs_review_count,
+        safe_matches=safe_matches_count,
         unmatched_names=sorted(list(unmatched_names_set))[:50],
     )
 
@@ -554,6 +675,15 @@ def normalize(
 
         new_arrays.append(pa.array(lgd_match_scores, type=pa.float64()))
         new_names.append("lgd_match_score")
+
+        new_arrays.append(pa.array(lgd_needs_reviews, type=pa.bool_()))
+        new_names.append("lgd_needs_review")
+
+        new_arrays.append(pa.array(lgd_review_reasons, type=pa.string()))
+        new_names.append("lgd_review_reason")
+
+        new_arrays.append(pa.array(lgd_confidence_tiers, type=pa.string()))
+        new_names.append("lgd_confidence_tier")
 
     normalized_table = pa.Table.from_arrays(new_arrays, names=new_names)
 

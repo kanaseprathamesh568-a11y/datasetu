@@ -108,14 +108,13 @@ button:active {
   <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
     <div class="flex items-center space-x-3 divide-x divide-slate-700">
       <div class="flex items-center space-x-2">
-        <svg class="w-4 h-5 fill-amber-400" viewBox="0 0 24 30"><path d="M12 2C10.5 2 9 3 9 4.5V6H15V4.5C15 3 13.5 2 12 2ZM6 8C5.5 8 5 8.5 5 9V11C5 12 5.8 12.8 6.7 13L6 18H8L8.6 13C9 13 9.4 12.9 9.8 12.7V17H11V8H6ZM18 8H13V17H14.2V12.7C14.6 12.9 15 13 15.4 13L16 18H18L17.3 13C18.2 12.8 19 12 19 11V9C19 8.5 18.5 8 18 8ZM8 20V22H16V20H8ZM7 23C7 24.1 7.9 25 9 25H15C16.1 25 17 24.1 17 23V22.5H7V23Z"></path></svg>
-        <span class="font-semibold text-slate-200 tracking-wide font-devanagari" id="txt-govt-brand">भारत सरकार</span>
-        <span class="text-slate-400 hidden sm:inline" id="txt-govt-en">| Government of India</span>
+        <span class="font-semibold text-slate-200 tracking-wide font-devanagari text-sm" id="txt-govt-brand">डेटासेतु DataSetu</span>
+        <span class="text-slate-400 hidden sm:inline text-xs" id="txt-govt-en">| Open Source Civic Tech</span>
       </div>
       <div class="pl-3 hidden md:flex items-center space-x-2 text-slate-400">
-        <span id="txt-ministry" class="">Ministry of Electronics &amp; IT (MeitY)</span>
+        <span id="txt-ministry" class="bg-amber-900/60 text-amber-300 px-2 py-0.5 rounded text-[10px] font-bold">Public Beta Sandbox</span>
         <span class="text-slate-600">•</span>
-        <span class="text-saffron font-medium">NIC Public Partner</span>
+        <span class="text-emerald-400 font-medium text-xs">Community Maintained</span>
       </div>
     </div>
     <div class="flex items-center space-x-4">
@@ -143,6 +142,14 @@ button:active {
     </div>
   </div>
 </header>
+
+<!-- Public Release Disclaimer Banner -->
+<div class="bg-govNavy-950/95 border-b border-amber-500/30 text-amber-200/90 text-xs py-2 px-4 text-center z-30">
+  <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-2">
+    <span class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Public Beta Notice</span>
+    <span>DataSetu is an independent open-source civic tech project bridging India's open datasets to modern APIs. Not affiliated with or endorsed by NIC, MeitY, or data.gov.in. All data processed under GODL-India &amp; NDSAP.</span>
+  </div>
+</div>
 
 <!-- Main Navigation Bar -->
 <nav class="bg-govNavy-900 border-b border-govNavy-800 sticky top-0 z-40 shadow-md">
@@ -259,7 +266,7 @@ button:active {
       <div class="flex items-center space-x-2 truncate pr-2">
         <span class="text-slate-500 font-bold select-none">$</span>
         <span class="text-slate-300">curl -X GET</span>
-        <span class="truncate text-amber-300" id="heroCurlString">"https://api.datasetu.gov.in/v1/lgd/districts?state=KA&amp;format=json"</span>
+        <span class="truncate text-amber-300" id="heroCurlString">"/v1/data?state=KA&amp;limit=5"</span>
         <span class="text-slate-500 hidden md:inline">-H "X-Bharat-Token: demo"</span>
       </div>
       <div class="flex items-center space-x-2 shrink-0 self-end sm:self-auto">
@@ -279,7 +286,7 @@ button:active {
       <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
         <div class="flex items-center space-x-2">
           <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-bold border border-emerald-800 text-[10px]">HTTP 200 OK</span>
-          <span class="text-slate-400 text-[11px]">NIC Bharat Serverless Edge • Latency: 1.18 ms</span>
+          <span class="text-slate-400 text-[11px]">Vectorized DuckDB Engine • In-Memory Columnar Latency: 1.18 ms</span>
         </div>
         <button class="text-slate-400 hover:text-white" onclick="toggleHeroCurlLiveConsole()">✕</button>
       </div>
@@ -334,23 +341,23 @@ button:active {
 
     <div class="bg-white rounded-lg p-4 shadow-md border-t-4 border-saffron border-x border-b border-slate-200 cursor-pointer card-hover-lift group" onclick="switchGovTab('lgd')" title="Click to explore LGD Directory Crosswalk">
       <div class="flex items-center justify-between">
-        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide group-hover:text-amber-800">LGD Match Accuracy</span>
-        <span class="bg-amber-50 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded">MoPR Verified</span>
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide group-hover:text-amber-800">Benchmark LGD Match</span>
+        <span class="bg-amber-50 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded">26 Ministries Tested</span>
       </div>
-      <div class="text-3xl font-extrabold text-govNavy-900 mt-1" id="kpi-lgd-rate">91.9%</div>
+      <div class="text-3xl font-extrabold text-govNavy-900 mt-1" id="kpi-lgd-rate">83.5%</div>
       <p class="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
-        <span class="text-amber-600 font-bold">2,298 / 2,500</span> MoPR Census gazetteer mapped
+        <span class="text-amber-600 font-bold">21 Records</span> safely flagged for human review
       </p>
     </div>
 
     <div class="bg-white rounded-lg p-4 shadow-md border-t-4 border-indiaGreen border-x border-b border-slate-200 cursor-pointer card-hover-lift group" onclick="switchGovTab('disinfector')" title="Click to view Script Normalization Diff">
       <div class="flex items-center justify-between">
-        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide group-hover:text-indiaGreen">Disinfection Scorecard</span>
-        <span class="bg-emerald-50 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Grade A+</span>
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide group-hover:text-indiaGreen">Pipeline Reliability</span>
+        <span class="bg-emerald-50 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Measured Suite</span>
       </div>
-      <div class="text-3xl font-extrabold text-govNavy-900 mt-1" id="kpi-hygiene-score">98.8%</div>
+      <div class="text-3xl font-extrabold text-govNavy-900 mt-1" id="kpi-hygiene-score">96.2%</div>
       <p class="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
-        CP-1252, Preamble &amp; Merged Headers Repaired
+        25 / 26 real files parsed (1 corrupt caught cleanly)
       </p>
     </div>
 
@@ -372,9 +379,9 @@ button:active {
   <div class="flex flex-col md:flex-row md:items-end justify-between mb-6 pb-3 border-b border-slate-200 gap-4">
     <div>
       <div class="flex items-center space-x-2 text-xs font-bold text-saffron uppercase tracking-widest">
-        <span class="">Official Public Sandbox</span>
+        <span class="">Open Source Public Sandbox</span>
         <span class="">•</span>
-        <span class="text-indiaGreen">GIGW 3.0 Standardized</span>
+        <span class="text-indiaGreen">Apache 2.0 Licensed</span>
       </div>
       <h2 class="text-2xl font-bold text-govNavy-900 tracking-tight" id="section-main-heading">Open Data Transformation Engine</h2>
       <p class="text-sm text-slate-600" id="section-main-subhead">Inspect raw government records, run sanitized queries, and copy validated Bharat API endpoints.</p>
@@ -449,7 +456,7 @@ button:active {
         </select>
         <button id="btn-filter-disinfected" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-semibold px-2 py-1 rounded flex items-center gap-1 transition" onclick="toggleOnlyDisinfected()">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-          <span id="btn-filter-disinfected-label">91.9% MoPR LGD Verified</span>
+          <span id="btn-filter-disinfected-label">83.5% LGD Verified (Safe Matching)</span>
         </button>
       </div>
       <div class="text-xs text-slate-500 flex items-center justify-between lg:justify-end gap-2">
@@ -599,7 +606,7 @@ button:active {
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <span class="bg-govNavy-900 text-white font-mono font-bold text-xs px-3 py-2.5 rounded text-center">GET</span>
           <div class="flex-grow flex items-center bg-white border border-slate-300 rounded px-3 py-1.5 focus-within:ring-2 focus-within:ring-govNavy-800">
-            <span class="text-xs text-slate-400 font-mono select-none">https://api.datasetu.gov.in/v1/</span>
+            <span class="text-xs text-slate-400 font-mono select-none">/v1/</span>
             <input id="apiEndpointPath" class="w-full text-xs font-mono text-slate-800 border-none p-1 focus:ring-0" type="text" value="lgd/districts?state=KA&amp;limit=5">
           </div>
           <button class="bg-govRed hover:bg-govRed-hover text-white font-semibold text-xs px-6 py-2.5 rounded transition flex items-center justify-center space-x-1.5 shrink-0 shadow-sm active:scale-95" onclick="executePlaygroundQuery()">
@@ -723,37 +730,37 @@ button:active {
   </div>
   </main>
 
-<!-- Institutional Partners Ecosystem -->
+<!-- Open Standards & Data Sources Section -->
 <section class="bg-slate-100 border-t border-b border-slate-200 py-8 px-4 sm:px-8">
   <div class="max-w-7xl mx-auto">
     <div class="text-center mb-5">
-      <span class="text-xs font-bold uppercase tracking-widest text-slate-500">Digital Public Infrastructure Ecosystem</span>
-      <h4 class="text-sm font-semibold text-slate-700 mt-0.5">Conforming to Open Government Data Standards &amp; India Stack Architecture</h4>
+      <span class="text-xs font-bold uppercase tracking-widest text-slate-500">Open Standards &amp; Interoperability</span>
+      <h4 class="text-sm font-semibold text-slate-700 mt-0.5">Conforming to National Data Sharing and Accessibility Policy (NDSAP) &amp; Open Data Formats</h4>
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 items-center">
       <div class="bg-white p-3 rounded border border-slate-200 text-center shadow-xs flex flex-col items-center justify-center h-18">
-        <span class="font-extrabold text-govNavy-900 text-sm tracking-tight">Digital India</span>
-        <span class="text-[10px] text-saffron font-bold">पॉवर टू एम्पावर</span>
+        <span class="font-extrabold text-govNavy-900 text-sm tracking-tight">GODL-India</span>
+        <span class="text-[10px] text-saffron font-bold">Open Data License</span>
       </div>
       <div class="bg-white p-3 rounded border border-slate-200 text-center shadow-xs flex flex-col items-center justify-center h-18">
-        <span class="font-extrabold text-govNavy-900 text-sm tracking-tight">MeitY</span>
-        <span class="text-[10px] text-slate-500">Govt. of India</span>
+        <span class="font-extrabold text-govNavy-900 text-sm tracking-tight">NDSAP</span>
+        <span class="text-[10px] text-slate-500">Data Standards</span>
       </div>
       <div class="bg-white p-3 rounded border border-slate-200 text-center shadow-xs flex flex-col items-center justify-center h-18">
         <span class="font-extrabold text-govNavy-900 text-sm tracking-tight">data.gov.in</span>
-        <span class="text-[10px] text-indiaGreen font-bold">OGD Platform</span>
+        <span class="text-[10px] text-indiaGreen font-bold">OGD Source Data</span>
       </div>
       <div class="bg-white p-3 rounded border border-slate-200 text-center shadow-xs flex flex-col items-center justify-center h-18">
-        <span class="font-extrabold text-govNavy-900 text-sm tracking-tight">NIC</span>
-        <span class="text-[10px] text-slate-500">National Informatics</span>
+        <span class="font-extrabold text-govNavy-900 text-sm tracking-tight">LGD Directory</span>
+        <span class="text-[10px] text-slate-500">MoPR Gazetteer</span>
       </div>
       <div class="bg-white p-3 rounded border border-slate-200 text-center shadow-xs flex flex-col items-center justify-center h-18">
-        <span class="font-extrabold text-govNavy-900 text-sm tracking-tight">MoPR</span>
-        <span class="text-[10px] text-slate-500">LGD Directory</span>
+        <span class="font-extrabold text-govNavy-900 text-sm tracking-tight">DuckDB</span>
+        <span class="text-[10px] text-slate-500">Columnar Engine</span>
       </div>
       <div class="bg-white p-3 rounded border border-slate-200 text-center shadow-xs flex flex-col items-center justify-center h-18">
-        <span class="font-extrabold text-govNavy-900 text-sm tracking-tight">India Stack</span>
-        <span class="text-[10px] text-govRed font-bold">Open APIs</span>
+        <span class="font-extrabold text-govNavy-900 text-sm tracking-tight">OpenAPI 3.1</span>
+        <span class="text-[10px] text-govRed font-bold">REST Services</span>
       </div>
     </div>
   </div>
@@ -807,7 +814,7 @@ button:active {
       </div>
     </div>
     <div class="mt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-3">
-      <div class="">© 2026 DataSetu (डेटासेतु) • Managed in collaboration with National Informatics Centre (NIC) &amp; MeitY.</div>
+      <div class="">© 2026 DataSetu (डेटासेतु) Community • Released under Apache 2.0 • Independent open source civic tech project not affiliated with NIC or MeitY.</div>
       <div class="">Last Updated: 31 October 2026 | Version 2.4.2-public-sandbox</div>
     </div>
   </div>
@@ -827,7 +834,7 @@ button:active {
       <div>
         <label class="block font-semibold text-slate-700 mb-1">Production Endpoint</label>
         <div class="flex items-center bg-slate-100 rounded border border-slate-300 p-1">
-          <input id="modalApiEndpointInput" class="w-full bg-transparent font-mono text-xs text-slate-800 border-none focus:ring-0 p-1" readonly="" type="text" value="https://api.datasetu.gov.in/v1/datasets/pmkisan-ka">
+          <input id="modalApiEndpointInput" class="w-full bg-transparent font-mono text-xs text-slate-800 border-none focus:ring-0 p-1" readonly="" type="text" value="/v1/datasets/pmkisan-ka">
           <button class="bg-govNavy-900 hover:bg-govNavy-800 text-white text-[11px] px-3 py-1 rounded shrink-0" onclick="copyModalApiUrl()">Copy URL</button>
         </div>
       </div>
@@ -1068,9 +1075,9 @@ let onlyDisinfected = true;
 
 const translations = {
   en: {
-    govtBrand: "भारत सरकार",
-    govtEn: "| Government of India",
-    ministry: "Ministry of Electronics & Information Technology (MeitY)",
+    govtBrand: "डेटासेतु DataSetu",
+    govtEn: "| Open Source Civic Tech",
+    ministry: "Public Beta Sandbox",
     taglineHi: "डेटासेतु — राष्ट्रीय मुक्त डेटा और ओपन एपीआई मंच",
     subtext: "Where Public Government Data Converges into Clean, LGD-Standardized, Instant Bharat APIs.",
     uploadLabel: "Upload Dataset / योगदान दें",
@@ -1079,9 +1086,9 @@ const translations = {
     mainSubhead: "Inspect raw government records, run sanitized queries, and copy validated Bharat API endpoints."
   },
   hi: {
-    govtBrand: "भारत सरकार",
-    govtEn: "| Government of India",
-    ministry: "इलेक्ट्रॉनिक्स और सूचना प्रौद्योगिकी मंत्रालय (MeitY)",
+    govtBrand: "डेटासेतु DataSetu",
+    govtEn: "| ओपन सोर्स नागरिक तकनीक",
+    ministry: "सार्वजनिक बीटा सैंडबॉक्स",
     taglineHi: "डेटासेतु — राष्ट्रीय मुक्त डेटा और ओपन एपीआई मंच",
     subtext: "जहाँ भारत सरकार का सार्वजनिक डेटा स्वच्छ, एलजीडी-मानकीकृत और त्वरित भारत एपीआई में परिवर्तित होता है।",
     uploadLabel: "डेटासेट अपलोड करें / योगदान दें",
@@ -1315,7 +1322,7 @@ function toggleHeroCurlLiveConsole() {
 }
 
 function copyHeroCurlCommand() {
-  const curl = 'curl -X GET "https://api.datasetu.gov.in/v1/lgd/districts?state=KA&format=json" -H "X-Bharat-Token: demo"';
+  const curl = 'curl -s "' + window.location.origin + '/v1/data?state=KA&limit=5" | jq .';
   navigator.clipboard.writeText(curl);
   const label = document.getElementById('copyHeroCurlLabel');
   label.innerText = 'Copied!';
@@ -1326,7 +1333,7 @@ function copyHeroCurlCommand() {
 const modalSamples = {
   'pmkisan-ka': {
     title: 'pmkisan-ka-distr-2024',
-    url: 'https://api.datasetu.gov.in/v1/datasets/pmkisan-ka',
+    url: '/v1/datasets/pmkisan-ka',
     state: 'KA',
     json: { status: "200_OK", scheme: "PM-KISAN", state: "KA", lgd_code: 556, district: "Belagavi", records: [{ taluka: "Chikkodi", installment_inr: 2000, date: "2024-04-12" }, { taluka: "Hukkeri", installment_inr: 2000, date: "2024-04-14" }] },
     raw: '# PMKISAN_RAW_EXTRACT_2024.csv\n"State","District","Panchayat","Installment","Date"\n"KA","Belgaum ","Chikodi","२,०००/-","12/04/24"\n"KA","BELGAUM","Hukkeri","२,०००","2024.04.14"',
@@ -1334,7 +1341,7 @@ const modalSamples = {
   },
   'mgnrega-up': {
     title: 'mgnrega-up-panch-08',
-    url: 'https://api.datasetu.gov.in/v1/datasets/mgnrega-up',
+    url: '/v1/datasets/mgnrega-up',
     state: 'UP',
     json: { status: "200_OK", scheme: "MGNREGA", state: "UP", lgd_code: 142, district: "Varanasi", records: [{ block: "Pindra", muster_count: 42, wage_disbursed: 4250.00 }] },
     raw: '# MGNREGA_VARANASI_MUSTER.csv\n"Block","GramPanchayat","DaysWorked","DateRange"\n"Pindra ","Phoolpur","४२","01-04-24 to 15-04-24"',
@@ -1342,7 +1349,7 @@ const modalSamples = {
   },
   'nhm-mh-phc': {
     title: 'nhm-mh-phc-vaccine',
-    url: 'https://api.datasetu.gov.in/v1/datasets/nhm-mh-phc',
+    url: '/v1/datasets/nhm-mh-phc',
     state: 'MH',
     json: { status: "200_OK", scheme: "NHM", state: "MH", lgd_code: 489, district: "Pune", records: [{ phc_code: "MH-PUN-01", vaccinated_children: 120, status: "COMPLETED" }] },
     raw: '# NHM_PUNE_IMMUNIZATION.csv\n"PHC_Name","DoseCount","Date"\n"Pune Rural","१२०","14/04/2024"',
@@ -1350,7 +1357,7 @@ const modalSamples = {
   },
   'pmayg-tn': {
     title: 'pmayg-tn-sanction-24',
-    url: 'https://api.datasetu.gov.in/v1/datasets/pmayg-tn',
+    url: '/v1/datasets/pmayg-tn',
     state: 'TN',
     json: { status: "200_OK", scheme: "PMAYG", state: "TN", lgd_code: 602, district: "Madurai", records: [{ sanction_id: "TN-MAD-99", unit_cost: 120000.0 }] },
     raw: '# PMAY_SANCTIONS_TN.csv\n"District","SanctionedHouses","Subsidy"\n"Madurai","३४०","1,20,000/-"',
@@ -1358,7 +1365,7 @@ const modalSamples = {
   },
   'mgnrega-br': {
     title: 'mgnrega-br-wage-disb',
-    url: 'https://api.datasetu.gov.in/v1/datasets/mgnrega-br',
+    url: '/v1/datasets/mgnrega-br',
     state: 'BR',
     json: { status: "200_OK", scheme: "MGNREGA", state: "BR", lgd_code: 214, district: "Patna", records: [{ transaction_ref: "ABPS-BR-01", amount: 240.0 }] },
     raw: '# MGNREGA_PATNA_WAGES.csv\n"Dist","AadhaarStatus","Disbursed"\n"Patana","Success","२४०"',
@@ -1804,9 +1811,20 @@ function renderExplorerTable(records) {
     const distEsc = distName.replace(/'/g, "\\'");
     const stateEsc = stateName.replace(/'/g, "\\'");
 
-    const lgdBadge = lgdCode 
-      ? `<span class="bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded border border-slate-200 cursor-pointer inline-flex items-center gap-1 font-mono text-[11px]" onclick="openLgdInspector('${distEsc}', '${stateEsc}')" title="Inspect official MoPR Census Gazetteer">LGD: ${lgdCode} (${escapeHtml(lgdName)}) 🔍</span><div class="text-[10px] text-emerald-700 font-medium mt-0.5">${matchMethod} match</div>`
-      : `<span class="bg-amber-50 text-amber-800 px-1.5 py-0.5 rounded border border-amber-200 cursor-pointer inline-flex items-center gap-1 text-[11px]" onclick="openLgdInspector('${distEsc}', '${stateEsc}')">Pending 🔍</span>`;
+    const needsReview = r['lgd_needs_review'] === true;
+    const reviewReason = r['lgd_review_reason'] || '';
+    const confTier = r['lgd_confidence_tier'] || (needsReview ? 'none' : 'high');
+
+    let lgdBadge = '';
+    let statusText = status;
+    if (needsReview) {
+      lgdBadge = `<span class="bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded cursor-pointer inline-flex items-center gap-1 font-mono text-[11px]" onclick="openLgdInspector('${distEsc}', '${stateEsc}')" title="${escapeHtml(reviewReason || 'Ambiguous match requires human review')}">⚠️ Review: ${escapeHtml(lgdName)} 🔍</span><div class="text-[10px] text-amber-700 font-medium mt-0.5" title="${escapeHtml(reviewReason)}">${escapeHtml(reviewReason ? reviewReason.slice(0, 30) + '...' : 'Ambiguous')}</div>`;
+      statusText = 'Flagged for Review';
+    } else if (lgdCode) {
+      lgdBadge = `<span class="bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded border border-slate-200 cursor-pointer inline-flex items-center gap-1 font-mono text-[11px]" onclick="openLgdInspector('${distEsc}', '${stateEsc}')" title="Inspect official LGD Directory">LGD: ${lgdCode} (${escapeHtml(lgdName)}) 🔍</span><div class="text-[10px] text-emerald-700 font-medium mt-0.5">${matchMethod} match (${confTier})</div>`;
+    } else {
+      lgdBadge = `<span class="bg-amber-50 text-amber-800 px-1.5 py-0.5 rounded border border-amber-200 cursor-pointer inline-flex items-center gap-1 text-[11px]" onclick="openLgdInspector('${distEsc}', '${stateEsc}')">Pending 🔍</span>`;
+    }
 
     return `
       <tr class="hover:bg-slate-50 transition">
@@ -1827,7 +1845,7 @@ function renderExplorerTable(records) {
         </td>
         <td class="py-3.5 px-3">
           <span class="inline-flex items-center text-xs font-semibold text-emerald-700">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span> ${escapeHtml(status)}
+            <span class="w-2 h-2 rounded-full ${needsReview ? "bg-amber-500" : "bg-emerald-500"} mr-1.5"></span> ${escapeHtml(statusText)}
           </span>
           <div class="text-[10px] text-slate-400 font-mono mt-0.5">REST/JSON • Parquet</div>
         </td>
@@ -1915,7 +1933,7 @@ function resetExplorerFilters() {
   const btn = document.getElementById('btn-filter-disinfected');
   if (btn) {
     btn.className = 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-semibold px-2 py-1 rounded flex items-center gap-1 transition';
-    document.getElementById('btn-filter-disinfected-label').innerText = '91.9% MoPR LGD Verified';
+    document.getElementById('btn-filter-disinfected-label').innerText = '83.5% LGD Verified (Safe Matching)';
   }
   loadExplorerData(1);
 }
@@ -1929,7 +1947,7 @@ function toggleOnlyDisinfected() {
     if (label) label.innerText = 'Showing Verified LGD Only (2,298)';
   } else {
     btn.className = 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-semibold px-2 py-1 rounded flex items-center gap-1 transition';
-    if (label) label.innerText = '91.9% MoPR LGD Verified';
+    if (label) label.innerText = '83.5% LGD Verified (Safe Matching)';
   }
   loadExplorerData(1);
 }

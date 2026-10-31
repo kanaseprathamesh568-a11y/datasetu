@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "datasetu"
-version = "0.1.0"
-description = "Deterministic compiler turning messy Indian public data into versioned REST APIs and typed SDKs"
+version = "1.0.0"
+description = "Autonomous National Open Data to Open API Engine with Bharat Entity Intelligence"
 readme = "README.md"
 authors = [{ name = "Team DataSetu" }]
 license = "Apache-2.0"
@@ -56,3 +56,4 @@ testpaths = ["tests"]
 pythonpath = ["."]
 python_files = ["test_*.py"]
 asyncio_mode = "auto"
+

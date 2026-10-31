@@ -54,6 +54,9 @@ class DatasetRecord:
     lgd_district_name: Optional[str] = None
     lgd_match_method: Optional[str] = None
     lgd_match_score: Optional[float] = None
+    lgd_needs_review: Optional[bool] = None
+    lgd_review_reason: Optional[str] = None
+    lgd_confidence_tier: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> DatasetRecord:
@@ -72,6 +75,9 @@ class DatasetRecord:
             lgd_district_name=data.get("lgd_district_name"),
             lgd_match_method=data.get("lgd_match_method"),
             lgd_match_score=data.get("lgd_match_score"),
+            lgd_needs_review=data.get("lgd_needs_review"),
+            lgd_review_reason=data.get("lgd_review_reason"),
+            lgd_confidence_tier=data.get("lgd_confidence_tier"),
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -90,6 +96,9 @@ class DatasetRecord:
             "lgd_district_name": self.lgd_district_name,
             "lgd_match_method": self.lgd_match_method,
             "lgd_match_score": self.lgd_match_score,
+            "lgd_needs_review": self.lgd_needs_review,
+            "lgd_review_reason": self.lgd_review_reason,
+            "lgd_confidence_tier": self.lgd_confidence_tier,
         }
 
 

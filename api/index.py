@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import json
+import urllib.parse
 import traceback
 from pathlib import Path
 
@@ -11,10 +12,6 @@ os.environ["DUCKDB_TEMP_DIRECTORY"] = "/tmp"
 os.environ["NUMEXPR_MAX_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
 
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse, JSONResponse
-import pyarrow.parquet as pq
-
 # Add both api/ and parent repo root to sys.path
 api_dir = Path(__file__).resolve().parent
 repo_dir = api_dir.parent
@@ -22,6 +19,53 @@ repo_dir = api_dir.parent
 for p in [str(api_dir), str(repo_dir)]:
     if p not in sys.path:
         sys.path.insert(0, p)
+
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse
+from starlette.types import ASGIApp, Scope, Receive, Send
+import pyarrow.parquet as pq
+
+# TOP-LEVEL FASTAPI INSTANCE (REQUIRED BY VERCEL AST DETECTOR)
+app = FastAPI(
+    title="DataSetu Engine API",
+    version="1.0.0",
+    description="Autonomous National Open Data to Open API Synthesizer",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+)
+
+class VercelPathFixMiddleware:
+    """Restores the true client URL path and parameters from Vercel's rewrite rule."""
+
+    def __init__(self, asgi_app: ASGIApp):
+        self.asgi_app = asgi_app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] == "http":
+            qs = scope.get("query_string", b"").decode("latin1")
+            q_list = urllib.parse.parse_qsl(qs, keep_blank_values=True)
+            path_val = None
+            clean_pairs = []
+            for k, v in q_list:
+                if k == "path":
+                    path_val = v
+                else:
+                    clean_pairs.append((k, v))
+
+            if path_val is not None and path_val.strip():
+                clean_path = "/" + path_val.strip().lstrip("/")
+                scope["path"] = clean_path
+                scope["raw_path"] = clean_path.encode("latin1")
+                scope["query_string"] = urllib.parse.urlencode(clean_pairs).encode("latin1")
+            elif scope.get("path") in ("/api/index.py", "/api/index", "/api"):
+                scope["path"] = "/"
+                scope["raw_path"] = b"/"
+                scope["query_string"] = urllib.parse.urlencode(clean_pairs).encode("latin1")
+
+        await self.asgi_app(scope, receive, send)
+
+app.add_middleware(VercelPathFixMiddleware)
 
 try:
     from datasetu.db import DatasetStore
@@ -52,7 +96,6 @@ try:
     store = DatasetStore()
 
     if parquet_path:
-        # Ultra-fast load (39ms) from precompiled Parquet
         norm_tbl = pq.read_table(str(parquet_path))
         store.load(norm_tbl, report=report_data)
     else:
@@ -79,8 +122,8 @@ try:
         )
         store.load(norm_tbl, report=report)
 
-    # Build production FastAPI app with Swagger, REST routes, and Google Stitch UI
-    app = build_app(store)
+    # Mount routes and middlewares onto top-level app instance
+    build_app(store, app=app)
 
     # Add quick healthcheck route
     @app.get("/api/health")
@@ -93,11 +136,8 @@ try:
         }
 
 except Exception as err:
-    # Fail-safe diagnostic handler (returns status 200 so Vercel renders the actual error details)
     stack_trace = traceback.format_exc()
     print("FATAL STARTUP ERROR IN VERCEL API ENTRYPOINT:\n", stack_trace, file=sys.stderr)
-
-    app = FastAPI(title="DataSetu Engine Recovery")
 
     @app.get("/{full_path:path}")
     def debug_error(full_path: str = ""):

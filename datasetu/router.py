@@ -386,7 +386,10 @@ def build_app(store: DatasetStore, source_info: Optional[Dict[str, Any]] = None)
     )
     def get_report():
         if store.report is not None:
-            return store.report.summary_dict()
+            if hasattr(store.report, "summary_dict"):
+                return store.report.summary_dict()
+            if isinstance(store.report, dict):
+                return store.report
         return {"notice": "No normalization report attached to active dataset"}
 
     # 7. Version Changelog
@@ -646,7 +649,14 @@ def build_app(store: DatasetStore, source_info: Optional[Dict[str, Any]] = None)
     )
     def get_hygiene_scorecard():
         rep = store.report
-        rep_dict = rep.summary_dict() if rep else {}
+        if rep is None:
+            rep_dict = {}
+        elif hasattr(rep, "summary_dict"):
+            rep_dict = rep.summary_dict()
+        elif isinstance(rep, dict):
+            rep_dict = rep
+        else:
+            rep_dict = {}
         total = rep_dict.get("total_rows_ingested", 2500)
         dist_stats = rep_dict.get("district_stats", {})
         matched = (

@@ -1,0 +1,62 @@
+{
+  "total_rows": 2500,
+  "encoding": "cp1252",
+  "header_row_index": 3,
+  "preamble_rows_stripped": 3,
+  "columns_converted": {
+    "Financial Provisions (INR) - Central Sanctioned Allocation": {
+      "original_type": "string",
+      "target_type": "double",
+      "converted_count": 2232,
+      "nulled_count": 268,
+      "total_count": 2500
+    },
+    "Financial Provisions (INR) - State Matching Share Released": {
+      "original_type": "string",
+      "target_type": "double",
+      "converted_count": 2287,
+      "nulled_count": 213,
+      "total_count": 2500
+    },
+    "Execution & Audit - Actual Expenditure Incurred": {
+      "original_type": "string",
+      "target_type": "double",
+      "converted_count": 2249,
+      "nulled_count": 251,
+      "total_count": 2500
+    },
+    "Impact Metrics - Beneficiaries Reached": {
+      "original_type": "string",
+      "target_type": "int64",
+      "converted_count": 2235,
+      "nulled_count": 265,
+      "total_count": 2500
+    }
+  },
+  "district_stats": {
+    "total_districts": 2500,
+    "matched_exact": 1381,
+    "matched_alias": 917,
+    "matched_fuzzy": 0,
+    "unmatched": 202,
+    "unmatched_names": [
+      "Bilaspur",
+      "MIDC Industrial Sector 12",
+      "Non-Categorized Transit Camp",
+      "Trans-Ganga Transit Belt",
+      "Zone 4 Buffer Area"
+    ]
+  },
+  "timings_ms": {
+    "lgd_resolution_ms": 698.81,
+    "numeral_parsing_ms": 81.65,
+    "total_normalization_ms": 781.06
+  },
+  "notes": [
+    "LGD district matching resolved 2298/2500 districts (1381 exact, 917 alias, 0 fuzzy, 202 unmatched)",
+    "Converted 'Financial Provisions (INR) - Central Sanctioned Allocation' to double (2232 parsed, 268 nulled)",
+    "Converted 'Financial Provisions (INR) - State Matching Share Released' to double (2287 parsed, 213 nulled)",
+    "Converted 'Execution & Audit - Actual Expenditure Incurred' to double (2249 parsed, 251 nulled)",
+    "Converted 'Impact Metrics - Beneficiaries Reached' to int64 (2235 parsed, 265 nulled)"
+  ]
+}

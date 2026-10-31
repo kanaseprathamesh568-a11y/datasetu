@@ -45,7 +45,10 @@ class DatasetStore:
 
     def __init__(self, dataset_name: str = "dataset"):
         self.dataset_name = dataset_name
-        self.conn = duckdb.connect(database=":memory:")
+        try:
+            self.conn = duckdb.connect(database=":memory:", config={"temp_directory": "/tmp"})
+        except Exception:
+            self.conn = duckdb.connect(database=":memory:")
         self.version = "1.0.0"
         self.table_name = "active_dataset"
         self._columns: list[str] = []

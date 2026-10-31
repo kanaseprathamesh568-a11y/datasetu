@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/index.py": {
-      "includeFiles": "datasetu/**,demo/**,docs/**",
+      "includeFiles": "api/**,demo/**,datasetu/**,docs/**",
       "maxDuration": 15
     }
   },

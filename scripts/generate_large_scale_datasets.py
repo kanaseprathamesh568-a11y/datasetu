@@ -205,6 +205,41 @@ def main():
             "pmay_gramin_housing.csv",
             {"state": "State / UT", "district": "District Name", "scheme": "Rural Housing Scheme", "financial_year": "Sanction Cycle", "sanctioned_amount_inr": "Housing Subsidy Allocation", "state_share_inr": "State Co-Financing Share", "expenditure_inr": "AwaasSoft Disbursed Amount", "beneficiaries": "Pucca Houses Constructed", "status": "Geo-Tagged Inspection Verification"}
         ),
+        (
+            ("Education & Skill Development", "Samagra Shiksha - Integrated Public School Infrastructure", 28000000, 160000000, 12000, 85000),
+            "samagra_shiksha_education.csv",
+            {"state": "State / UT", "district": "District Name", "scheme": "Educational Mission", "financial_year": "Academic Cycle", "sanctioned_amount_inr": "Central School Infrastructure Grant (INR)", "state_share_inr": "State Elementary Matching Fund", "expenditure_inr": "Digital Classroom Capex Incurred", "beneficiaries": "Enrolled Students Benefited", "status": "School Accreditation Clearance"}
+        ),
+        (
+            ("Power & Energy", "PM Surya Ghar Muft Bijli Yojana (Rooftop Solar)", 35000000, 190000000, 1800, 15000),
+            "pm_surya_ghar_power.csv",
+            {"state": "State / UT", "district": "District Name", "scheme": "Clean Energy Mission", "financial_year": "Deployment Phase", "sanctioned_amount_inr": "Central Financial Assistance (INR)", "state_share_inr": "State Rooftop Subsidy", "expenditure_inr": "DISCOM Grid Settlement", "beneficiaries": "Residential Solar Capacities (kW)", "status": "Smart Net-Metering Verified"}
+        ),
+        (
+            ("Economy & Finance", "Pradhan Mantri Jan Dhan Yojana (Financial Inclusion DBT)", 10000000, 50000000, 8500, 65000),
+            "pm_jan_dhan_finance.csv",
+            {"state": "State / UT", "district": "District Name", "scheme": "Financial Inclusion Mission", "financial_year": "Reporting FY", "sanctioned_amount_inr": "DBT Credit Inflow Volume (INR)", "state_share_inr": "Bank Branch Expansion Fund", "expenditure_inr": "Direct Bank Settlement Total", "beneficiaries": "Basic Savings Accounts Operational", "status": "RuPay & Aadhaar Seeded"}
+        ),
+        (
+            ("Housing & Urban Affairs", "Smart Cities Mission & AMRUT 2.0 Urban Infrastructure", 45000000, 220000000, 25000, 180000),
+            "smart_cities_urban.csv",
+            {"state": "State / UT", "district": "District Name", "scheme": "Urban Mission", "financial_year": "Implementation Phase", "sanctioned_amount_inr": "Central Project Outlay (INR)", "state_share_inr": "Municipal Matching Contribution", "expenditure_inr": "Municipal Capex Incurred", "beneficiaries": "Urban Citizens Reached", "status": "ICCC Smart Sensor Clearance"}
+        ),
+        (
+            ("Women & Child Development", "Mission Saksham Anganwadi & Poshan 2.0", 12000000, 70000000, 6500, 45000),
+            "poshan_abhiyaan_wcd.csv",
+            {"state": "State / UT", "district": "District Name", "scheme": "National Nutrition Mission", "financial_year": "Operational FY", "sanctioned_amount_inr": "Supplementary Nutrition Outlay (INR)", "state_share_inr": "State Anganwadi Top-Up", "expenditure_inr": "Child Nutrition Disbursed", "beneficiaries": "Children & Mothers Reached", "status": "Poshan Tracker Digital Verification"}
+        ),
+        (
+            ("Digital Infrastructure", "BharatNet National Optical Fibre Network (NOFN)", 20000000, 95000000, 45, 380),
+            "digital_india_bharatnet.csv",
+            {"state": "State / UT", "district": "District Name", "scheme": "Digital Infrastructure Scheme", "financial_year": "Connectivity Year", "sanctioned_amount_inr": "Optical Fibre Capital Grant (INR)", "state_share_inr": "Universal Service Obligation Share", "expenditure_inr": "Fibre Infrastructure Spend", "beneficiaries": "Gram Panchayats Connected", "status": "FTTH High-Speed Certified"}
+        ),
+        (
+            ("Environment & Climate", "National Clean Air Programme & Namami Gange", 15000000, 85000000, 12000, 95000),
+            "clean_air_environment.csv",
+            {"state": "State / UT", "district": "District Name", "scheme": "Environmental Mission", "financial_year": "Target Plan Year", "sanctioned_amount_inr": "Clean Air & River Outlay (INR)", "state_share_inr": "State Pollution Control Matching Fund", "expenditure_inr": "Air & Water Remediation Capex", "beneficiaries": "Monitoring Catchment Population", "status": "CPCB Ambient Norm Compliance"}
+        ),
     ]
     
     for scheme_tuple, filename, hdr_map in domain_configs:

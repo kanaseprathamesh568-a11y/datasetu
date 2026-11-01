@@ -491,7 +491,14 @@ def build_app(
     )
     def trigger_cdc_update():
         prev_version = store.version
-        active_arrow = store.conn.execute(f"SELECT * FROM {store.table_name}").fetch_arrow_table()
+        res = store.conn.execute(f"SELECT * FROM {store.table_name}")
+        if hasattr(res, "fetch_arrow_table"):
+            active_arrow = res.fetch_arrow_table()
+        elif hasattr(res, "arrow"):
+            arr = res.arrow()
+            active_arrow = arr.read_all() if hasattr(arr, "read_all") else arr
+        else:
+            active_arrow = store.conn.fetch_arrow_table()
         t0 = time.perf_counter()
         new_version = store.swap(active_arrow, new_report=store.report)
         swap_ms = round((time.perf_counter() - t0) * 1000.0, 2)
@@ -567,6 +574,74 @@ def build_app(
         finally:
             if tmp_path.exists():
                 tmp_path.unlink()
+
+    # 10c. Universal OGD URL Ingestion Engine (data.gov.in, NDAP, Ministry Portals)
+    @app.post(
+        "/v1/import-url",
+        tags=["System"],
+        summary="Ingest any public Open Government Data CSV/JSON URL into DuckDB with automatic normalization and LGD matching",
+    )
+    async def import_dataset_from_url(payload: Dict[str, Any]):
+        import re
+        from datasetu.sniffer import sniff
+        from datasetu.normalizer import normalize
+
+        url = payload.get("url", "").strip()
+        if not url or not (url.startswith("http://") or url.startswith("https://")):
+            raise HTTPException(status_code=400, detail="Invalid URL. Please provide a valid HTTP(S) data URL.")
+
+        dataset_id = payload.get("dataset_id")
+        title = payload.get("title")
+
+        t0 = time.perf_counter()
+        try:
+            sniff_res = sniff(url)
+            norm_tbl, report = normalize(
+                table=sniff_res.table,
+                encoding=sniff_res.encoding,
+                header_row_index=sniff_res.header_row_index,
+                preamble_rows_stripped=sniff_res.preamble_rows_stripped,
+            )
+
+            if not dataset_id:
+                clean_name = re.sub(r"[^a-zA-Z0-9_]", "_", Path(url.split("?")[0]).stem).strip("_") or "imported_ogd"
+                dataset_id = f"ogd_{clean_name}_{int(time.time())}"
+
+            clean_title = title or dataset_id.replace("_", " ").title()
+
+            store.register_dataset(
+                dataset_id=dataset_id,
+                table=norm_tbl,
+                metadata={
+                    "title": clean_title,
+                    "description": f"Ingested from official open data feed: {url}",
+                    "source_url": url,
+                    "tags": ["OGD", "Imported", "Disinfected"],
+                    "version": "1.0.0",
+                }
+            )
+
+            latency_ms = round((time.perf_counter() - t0) * 1000.0, 2)
+            d_stats = report.district_stats
+            matched = d_stats.matched_exact + d_stats.matched_alias + d_stats.matched_fuzzy
+            total_dists = max(1, d_stats.total_districts or len(norm_tbl))
+            lgd_pct = round((matched / total_dists) * 100.0, 1)
+
+            return {
+                "status": "success",
+                "dataset_id": dataset_id,
+                "title": clean_title,
+                "records_ingested": len(norm_tbl),
+                "columns_detected": len(norm_tbl.column_names),
+                "columns": norm_tbl.column_names,
+                "lgd_match_percentage": f"{lgd_pct}%",
+                "table_name": f"tbl_{dataset_id}",
+                "latency_ms": latency_ms,
+                "data_url": f"/v1/datasets/{dataset_id}/data",
+                "message": f"Successfully ingested {len(norm_tbl):,} records into in-memory DuckDB store."
+            }
+        except Exception as err:
+            raise HTTPException(status_code=400, detail=f"Failed to ingest dataset from URL: {str(err)}")
 
     # 11. CDC Status & Sync Health
     @app.get(

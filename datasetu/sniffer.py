@@ -361,9 +361,15 @@ def sniff(source: Union[str, Path]) -> SniffResult:
     try:
         # Escape path for SQL query
         safe_path = str(cleaned_path).replace("'", "''")
-        tbl = con.execute(
-            f"SELECT * FROM read_csv('{safe_path}', all_varchar=true, auto_detect=true)"
-        ).fetch_arrow_table()
+        query_sql = f"SELECT * FROM read_csv('{safe_path}', all_varchar=true, auto_detect=true)"
+        rel = con.query(query_sql) if hasattr(con, "query") else con.execute(query_sql)
+        if hasattr(rel, "fetch_arrow_table"):
+            tbl = rel.fetch_arrow_table()
+        elif hasattr(rel, "arrow"):
+            arr = rel.arrow()
+            tbl = arr.read_all() if hasattr(arr, "read_all") else arr
+        else:
+            tbl = con.fetch_arrow_table()
     finally:
         con.close()
 

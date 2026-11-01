@@ -98,6 +98,19 @@ def test_geojson_export(upgraded_client: TestClient):
     assert len(feature["geometry"]["coordinates"]) == 2
 
     # Test /v1/data?format=geojson
+    resp2 = upgraded_client.get("/v1/data?format=geojson&limit=10")
+    assert resp2.status_code == 200
+    assert resp2.json()["type"] == "FeatureCollection"
+
+def test_import_url_validation(upgraded_client: TestClient):
+    # Reject non-http
+    bad_resp = upgraded_client.post("/v1/import-url", json={"url": "ftp://example.com/data.csv"})
+    assert bad_resp.status_code == 400
+    assert "Invalid URL" in bad_resp.json()["detail"]
+
+    # Reject empty
+    empty_resp = upgraded_client.post("/v1/import-url", json={"url": ""})
+    assert empty_resp.status_code == 400
     resp_fmt = upgraded_client.get("/v1/data?format=geojson&limit=5")
     assert resp_fmt.status_code == 200
     assert "application/geo+json" in resp_fmt.headers["content-type"]

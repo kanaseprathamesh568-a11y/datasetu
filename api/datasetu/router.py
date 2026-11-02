@@ -39,7 +39,9 @@ from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel, Field, create_model
 
 from datasetu.ai import AIQueryEngine
+from datasetu.catalog_index import UniversalCatalogIndex
 from datasetu.db import DatasetStore, _safe_sql_ident
+from datasetu.harvester import FutureSyncEngine
 from datasetu.security import (
     RateLimitMiddleware,
     RequestSizeLimitMiddleware,
@@ -59,6 +61,15 @@ class AIQueryRequest(BaseModel):
 
     question: str = Field(..., description="Natural language question about India's public governance data")
     max_rows: Optional[int] = Field(20, description="Maximum number of tabular records to return (1-500)")
+
+
+class FutureSubscribeRequest(BaseModel):
+    """Request model to register a government data feed for automated future ingestion."""
+
+    url: str = Field(..., description="HTTP(S) or CKAN feed URL from data.gov.in, NDAP, or ministry portal")
+    title: str = Field(..., description="Human-readable title or scheme name")
+    portal: Optional[str] = Field("Union Ministry Portal", description="Publishing portal name")
+    cadence: Optional[str] = Field("Daily", description="Expected update frequency (Hourly, Daily, Weekly, Monthly)")
 
 
 def _build_pydantic_record_model(schema: List[Dict[str, str]]) -> Type[BaseModel]:
@@ -903,6 +914,64 @@ def build_app(
         max_rows = payload.max_rows or 20
         res = ai_engine.execute_and_synthesize(payload.question.strip(), max_rows=max_rows)
         return res
+
+    catalog_idx = UniversalCatalogIndex()
+    future_sync = FutureSyncEngine(store)
+
+    @app.get(
+        "/v1/catalog/search",
+        tags=["Universal Catalog"],
+        summary="Search across 2,500+ official Indian government datasets",
+    )
+    def search_master_catalog(
+        q: Optional[str] = Query(None, description="Keywords to match across title, ministry, sector, or tags"),
+        sector: Optional[str] = Query(None, description="Filter by socio-economic sector"),
+        ministry: Optional[str] = Query(None, description="Filter by Union Ministry"),
+        limit: int = Query(25, ge=1, le=100, description="Datasets per page"),
+        offset: int = Query(0, ge=0, description="Offset for pagination"),
+    ):
+        return catalog_idx.search(query=q, sector=sector, ministry=ministry, limit=limit, offset=offset)
+
+    @app.get(
+        "/v1/catalog/sectors",
+        tags=["Universal Catalog"],
+        summary="List all indexed government sectors and ministries",
+    )
+    def list_catalog_sectors():
+        return {
+            "sectors": catalog_idx.get_sectors(),
+            "ministries": catalog_idx.get_ministries(),
+            "total_datasets_indexed": len(catalog_idx.catalog),
+        }
+
+    @app.get(
+        "/v1/future-sync/status",
+        tags=["Future Data Sync"],
+        summary="Live status of automated future dataset harvester and active subscriptions",
+    )
+    def future_sync_status():
+        return future_sync.get_status()
+
+    @app.post(
+        "/v1/future-sync/trigger",
+        tags=["Future Data Sync"],
+        summary="Trigger immediate harvest cycle across government feeds for future dataset releases",
+    )
+    def trigger_future_sync():
+        return future_sync.trigger_harvest_cycle()
+
+    @app.post(
+        "/v1/future-sync/subscribe",
+        tags=["Future Data Sync"],
+        summary="Subscribe an upstream government data feed for continuous future ingestion",
+    )
+    def subscribe_future_feed(payload: FutureSubscribeRequest):
+        return future_sync.subscribe(
+            feed_url=payload.url,
+            title=payload.title,
+            portal=payload.portal or "Government Portal",
+            cadence=payload.cadence or "Daily",
+        )
 
     return app
 

@@ -38,6 +38,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel, Field, create_model
 
+from datasetu.ai import AIQueryEngine
 from datasetu.db import DatasetStore, _safe_sql_ident
 from datasetu.security import (
     RateLimitMiddleware,
@@ -51,6 +52,13 @@ class SQLQueryRequest(BaseModel):
     """Request model for in-memory DuckDB SQL queries."""
 
     query: str = Field(..., description="SQL SELECT query to execute against active table in DuckDB")
+
+
+class AIQueryRequest(BaseModel):
+    """Request model for plain language AI questions synthesized via in-memory LLM."""
+
+    question: str = Field(..., description="Natural language question about India's public governance data")
+    max_rows: Optional[int] = Field(20, description="Maximum number of tabular records to return (1-500)")
 
 
 def _build_pydantic_record_model(schema: List[Dict[str, str]]) -> Type[BaseModel]:
@@ -874,6 +882,27 @@ def build_app(
 
     # Pre-load pre-bundled domain catalog datasets
     _preload_catalog_datasets(store)
+
+    ai_engine = AIQueryEngine(store)
+
+    @app.post(
+        "/v1/ai/ask",
+        tags=["DataSetu AI Agent"],
+        summary="Ask plain language questions synthesized via in-memory LLM engine",
+    )
+    @app.post(
+        "/v1/ai/query",
+        tags=["DataSetu AI Agent"],
+        summary="Ask plain language questions synthesized via in-memory LLM engine",
+    )
+    def ask_ai(payload: AIQueryRequest):
+        """Processes plain English/Hindi queries against 28k+ statutory government records,
+        translating to vectorized DuckDB SQL and synthesizing executive LLM takeaways."""
+        if not payload.question or not payload.question.strip():
+            raise HTTPException(status_code=400, detail="Query prompt cannot be empty.")
+        max_rows = payload.max_rows or 20
+        res = ai_engine.execute_and_synthesize(payload.question.strip(), max_rows=max_rows)
+        return res
 
     return app
 

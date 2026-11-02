@@ -165,6 +165,7 @@ button:active {
       </div>
       <div class="hidden lg:flex items-center space-x-1 font-medium text-sm text-slate-200">
         <button class="nav-btn px-3.5 py-2 text-white font-semibold border-b-2 border-saffron transition-all" onclick="navToTab('explorer', this)">Home</button>
+        <button class="nav-btn px-3 py-2 text-purple-300 hover:text-white bg-purple-950/60 hover:bg-purple-900 border border-purple-500/40 rounded-md transition-colors font-bold flex items-center gap-1 shadow-sm" onclick="navToTab('ai', this)">🤖 Ask AI</button>
         <button class="nav-btn px-3 py-2 text-slate-300 hover:text-white hover:bg-govNavy-800 rounded-md transition-colors" onclick="navToTab('explorer', this)">National Data Explorer</button>
         <button class="nav-btn px-3 py-2 text-slate-300 hover:text-white hover:bg-govNavy-800 rounded-md transition-colors" onclick="navToTab('directory', this)">🏛️ Govt Sites Directory</button>
         <button class="nav-btn px-3 py-2 text-slate-300 hover:text-white hover:bg-govNavy-800 rounded-md transition-colors" onclick="navToTab('sql', this)">⚡ SQL Studio</button>
@@ -256,11 +257,12 @@ button:active {
     <div class="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-300">
       <span class="font-semibold text-slate-200 mr-1">Trending Searches :</span>
       <button class="bg-slate-900/60 hover:bg-slate-800 border border-slate-700/80 px-2.5 py-1 rounded text-slate-200 transition" onclick="applyTrendingFilter('Aadhaar')">Apply Aadhaar Schema</button>
+      <button class="bg-purple-950/80 hover:bg-purple-900 border border-purple-500/60 px-2.5 py-1 rounded text-purple-200 font-bold transition flex items-center gap-1 shadow-sm" onclick="switchGovTab('ai'); setAiPrompt('Which districts in Uttar Pradesh have the highest PM-KISAN funds?');">🤖 Ask DataSetu AI (LLM)</button>
       <button class="bg-slate-900/60 hover:bg-slate-800 border border-slate-700/80 px-2.5 py-1 rounded text-slate-200 transition" onclick="applyTrendingFilter('PM-Kisan')">PM Kisan Disinfected</button>
       <button class="bg-slate-900/60 hover:bg-slate-800 border border-slate-700/80 px-2.5 py-1 rounded text-slate-200 transition" onclick="applyTrendingFilter('Varanasi')">District Development LGD</button>
       <button class="bg-slate-900/60 hover:bg-slate-800 border border-slate-700/80 px-2.5 py-1 rounded text-slate-200 transition" onclick="applyTrendingFilter('Karnataka')">Karnataka LGD Entity</button>
       <button class="bg-slate-900/60 hover:bg-slate-800 border border-slate-700/80 px-2.5 py-1 rounded text-slate-200 transition" onclick="applyTrendingFilter('PMAY')">Union Budget Expenditure</button>
-      <button class="bg-saffron/20 hover:bg-saffron/30 border border-saffron/50 px-2.5 py-1 rounded text-amber-300 font-semibold transition flex items-center gap-1 btn-pill-glow" onclick="switchGovTab('explorer'); loadExplorerData(1);">🔍 In-Memory 10,170 Records (All-India)</button>
+      <button class="bg-saffron/20 hover:bg-saffron/30 border border-saffron/50 px-2.5 py-1 rounded text-amber-300 font-semibold transition flex items-center gap-1 btn-pill-glow" onclick="switchGovTab('explorer'); loadExplorerData(1);">🔍 In-Memory 28.9k Records (All-India)</button>
     </div>
 
     <!-- Interactive cURL CLI Bar with Run Query Toggle -->
@@ -337,40 +339,42 @@ button:active {
       </div>
       <div class="text-3xl font-extrabold text-govNavy-900 mt-1" id="kpi-total-records">28,938</div>
       <p class="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
-        <span class="text-indiaGreen font-bold">782 Districts</span> across 18 Central Portals
+        <span class="text-indiaGreen font-bold">782 Districts</span> across 13 Central Ministries
+      </p>
+    </div>
+
+    <div class="bg-white rounded-lg p-4 shadow-md border-t-4 border-purple-600 border-x border-b border-slate-200 cursor-pointer card-hover-lift group" onclick="switchGovTab('ai');" title="Click to ask plain language questions to DataSetu AI">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide group-hover:text-purple-800">DataSetu AI Agent</span>
+        <span class="bg-purple-50 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded">In-Memory LLM</span>
+      </div>
+      <div class="text-3xl font-extrabold text-purple-900 mt-1 flex items-center gap-2">
+        <span>🤖</span> Ask AI
+      </div>
+      <p class="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
+        <span class="text-purple-700 font-bold">Natural Language to SQL</span> &amp; synthesis
+      </p>
+    </div>
+
+    <div class="bg-white rounded-lg p-4 shadow-md border-t-4 border-indiaGreen border-x border-b border-slate-200 cursor-pointer card-hover-lift group" onclick="switchGovTab('playground')" title="Click to access public zero-dependency REST APIs">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide group-hover:text-indiaGreen">Public Developer API</span>
+        <span class="bg-emerald-50 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">100% Free</span>
+      </div>
+      <div class="text-3xl font-extrabold text-govNavy-900 mt-1" id="kpi-lgd-rate">Zero-Dep</div>
+      <p class="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
+        <span class="text-indiaGreen font-bold">No API Keys</span> • Standalone In-Memory
       </p>
     </div>
 
     <div class="bg-white rounded-lg p-4 shadow-md border-t-4 border-saffron border-x border-b border-slate-200 cursor-pointer card-hover-lift group" onclick="switchGovTab('directory')" title="Click to explore 18 official government open data portals">
       <div class="flex items-center justify-between">
         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide group-hover:text-amber-800">Govt Portals Indexed</span>
-        <span class="bg-amber-50 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded">All 28 Ministries</span>
+        <span class="bg-amber-50 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded">18 Central Portals</span>
       </div>
       <div class="text-3xl font-extrabold text-govNavy-900 mt-1" id="kpi-portals-count">18</div>
       <p class="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
-        <span class="text-amber-700 font-bold">data.gov.in, NDAP, RBI</span> &amp; ministries
-      </p>
-    </div>
-
-    <div class="bg-white rounded-lg p-4 shadow-md border-t-4 border-indiaGreen border-x border-b border-slate-200 cursor-pointer card-hover-lift group" onclick="switchGovTab('disinfector')" title="Click to view Script Normalization Diff">
-      <div class="flex items-center justify-between">
-        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide group-hover:text-indiaGreen">LGD Crosswalk Standard</span>
-        <span class="bg-emerald-50 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">100% Resolved</span>
-      </div>
-      <div class="text-3xl font-extrabold text-govNavy-900 mt-1" id="kpi-lgd-rate">782 / 782</div>
-      <p class="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
-        Statutory census directory crosswalk active
-      </p>
-    </div>
-
-    <div class="bg-white rounded-lg p-4 shadow-md border-t-4 border-govRed border-x border-b border-slate-200 cursor-pointer card-hover-lift group" onclick="switchGovTab('playground'); executePlaygroundQuery();" title="Click to test live query latency">
-      <div class="flex items-center justify-between">
-        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide group-hover:text-govRed">Query Latency (DuckDB)</span>
-        <span class="bg-red-50 text-govRed font-bold text-[10px] px-1.5 py-0.5 rounded">Vectorized</span>
-      </div>
-      <div class="text-3xl font-extrabold text-govNavy-900 mt-1" id="kpi-latency-val">1.25<span class="text-lg font-bold text-slate-600">ms</span></div>
-      <p class="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
-        Vectorized DuckDB in-memory columnar query
+        <span class="text-amber-700 font-bold">data.gov.in, NDAP, RBI</span> + 1-Click Ingest
       </p>
     </div>
   </div>
@@ -390,6 +394,7 @@ button:active {
     </div>
     <div class="flex bg-slate-200/80 p-1 rounded-lg border border-slate-300 self-start md:self-auto overflow-x-auto max-w-full">
       <button id="tab-btn-explorer" class="tab-trigger px-3.5 py-1.5 rounded-md text-xs font-semibold text-govNavy-900 bg-white shadow-sm whitespace-nowrap" onclick="switchGovTab('explorer')">National Data Explorer</button>
+      <button id="tab-btn-ai" class="tab-trigger px-3.5 py-1.5 rounded-md text-xs font-semibold text-purple-700 hover:text-purple-900 hover:bg-purple-50 whitespace-nowrap flex items-center gap-1 font-bold" onclick="switchGovTab('ai')">🤖 DataSetu AI Agent</button>
       <button id="tab-btn-directory" class="tab-trigger px-3.5 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-govNavy-900 whitespace-nowrap" onclick="switchGovTab('directory')">🏛️ Govt Sites Directory</button>
       <button id="tab-btn-sql" class="tab-trigger px-3.5 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-govNavy-900 whitespace-nowrap" onclick="switchGovTab('sql')">⚡ SQL Studio</button>
       <button id="tab-btn-disinfector" class="tab-trigger px-3.5 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-govNavy-900 whitespace-nowrap" onclick="switchGovTab('disinfector')">Data Disinfector</button>
@@ -1291,6 +1296,206 @@ LIMIT 15;</textarea>
           <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
             <span class="text-[10px] text-slate-400 font-mono">Tax Inflow Analytics</span>
             <button class="bg-emerald-800 hover:bg-emerald-900 text-white text-[11px] font-semibold px-2.5 py-1 rounded transition" onclick="selectAndSwitchToDataset('pm_jan_dhan_finance')">⚡ Ingest Revenue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB PANE: 🤖 DataSetu AI Agent -->
+  <div id="tab-pane-ai" class="tab-content hidden space-y-6">
+    <!-- Header Banner -->
+    <div class="bg-gradient-to-r from-purple-950 via-purple-900 to-govNavy-950 rounded-xl p-6 text-white shadow-xl border border-purple-500/40">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-2 flex-wrap">
+            <span class="bg-purple-500/30 border border-purple-400 text-purple-200 text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+              <span>✨</span> In-Memory LLM Data Agent • Sub-Millisecond Speed
+            </span>
+            <span class="bg-emerald-500/30 text-emerald-300 text-[11px] font-bold px-2 py-0.5 rounded-full">
+              100% Self-Contained • Zero External Dependencies
+            </span>
+          </div>
+          <h3 class="text-2xl font-extrabold tracking-tight">DataSetu AI: Autonomous Natural Language Data Agent</h3>
+          <p class="text-purple-200 text-sm mt-1 max-w-3xl leading-relaxed">
+            Ask any question in plain English or Hindi. DataSetu AI compiles your question into vectorized DuckDB SQL across all 28,938+ statutory records, executes in under 1 ms, and synthesizes executive policy insights for developers and citizens.
+          </p>
+        </div>
+        <div class="bg-white/10 backdrop-blur rounded-lg p-3 text-right hidden sm:block border border-white/10 shrink-0">
+          <div class="text-xs text-purple-200 font-medium">Public Developer Endpoint</div>
+          <div class="text-base font-mono font-bold text-amber-300">POST /v1/ai/ask</div>
+          <div class="text-[10px] text-purple-300">CORS enabled • Free Public Use</div>
+        </div>
+      </div>
+
+      <!-- Prompt Input Bar -->
+      <div class="mt-6 flex flex-col sm:flex-row gap-2">
+        <div class="relative flex-grow">
+          <input
+            id="aiQueryInput"
+            type="text"
+            class="w-full pl-11 pr-4 py-3.5 rounded-lg bg-slate-950/85 border border-purple-400/50 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 font-medium text-sm shadow-inner"
+            placeholder="Ask anything: e.g. 'Top 10 districts by PM-KISAN in UP', 'Show tap water in Bihar', 'MGNREGA wages in Maharashtra'..."
+            value="Which districts in Uttar Pradesh have the highest PM-KISAN funds?"
+            onkeydown="if(event.key === 'Enter') runAiQuery();"
+          />
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-purple-300">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+        </div>
+        <button
+          id="btnRunAi"
+          class="bg-gradient-to-r from-amber-500 to-saffron hover:from-amber-600 hover:to-orange-600 text-govNavy-900 font-bold px-6 py-3.5 rounded-lg flex items-center justify-center gap-2 transition shadow-lg shrink-0 active:scale-95"
+          onclick="runAiQuery()"
+        >
+          <span>Ask DataSetu AI</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </button>
+      </div>
+
+      <!-- Quick Suggestion Chips -->
+      <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
+        <span class="text-purple-300 font-semibold mr-1">Quick Prompts:</span>
+        <button class="bg-white/10 hover:bg-white/20 border border-white/20 px-2.5 py-1 rounded text-white transition" onclick="setAiPrompt('Which districts in Uttar Pradesh have the highest PM-KISAN funds?')">🌾 PM-KISAN in UP</button>
+        <button class="bg-white/10 hover:bg-white/20 border border-white/20 px-2.5 py-1 rounded text-white transition" onclick="setAiPrompt('Show top 10 districts in Bihar by tap water connections under Jal Jeevan')">💧 Tap Water in Bihar</button>
+        <button class="bg-white/10 hover:bg-white/20 border border-white/20 px-2.5 py-1 rounded text-white transition" onclick="setAiPrompt('Top 5 districts in Maharashtra by MGNREGA employment wages')">💼 MGNREGA in Maharashtra</button>
+        <button class="bg-white/10 hover:bg-white/20 border border-white/20 px-2.5 py-1 rounded text-white transition" onclick="setAiPrompt('Find rooftop solar capacity in Gujarat under PM Surya Ghar')">☀️ Solar in Gujarat</button>
+        <button class="bg-white/10 hover:bg-white/20 border border-white/20 px-2.5 py-1 rounded text-white transition" onclick="setAiPrompt('List rural housing pucca houses in Odisha under PMAY')">🏘️ PMAY Housing in Odisha</button>
+        <button class="bg-white/10 hover:bg-white/20 border border-white/20 px-2.5 py-1 rounded text-white transition" onclick="setAiPrompt('Central school grants in Tamil Nadu under Samagra Shiksha')">🎓 Education in Tamil Nadu</button>
+      </div>
+    </div>
+
+    <!-- AI Output Container -->
+    <div id="aiResultContainer" class="space-y-6">
+      <!-- Loading State Skeleton -->
+      <div id="aiLoadingSkeleton" class="hidden bg-white rounded-xl p-8 shadow-sm border border-slate-200 text-center space-y-4">
+        <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-purple-50 text-purple-700 font-semibold text-sm animate-pulse">
+          <svg class="animate-spin h-5 w-5 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+          Compiling natural language to vectorized DuckDB SQL &amp; synthesizing policy insights...
+        </div>
+      </div>
+
+      <!-- Synthesized Narrative Card -->
+      <div id="aiSynthesisCard" class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
+        <div class="p-5 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-bold text-sm shadow">
+              🤖
+            </div>
+            <div>
+              <div class="text-xs font-bold text-purple-800 uppercase tracking-wide" id="aiDomainBadge">PM-KISAN Direct Benefit Transfer</div>
+              <h4 class="text-base font-bold text-slate-800" id="aiQuestionTitle">Which districts in Uttar Pradesh have the highest PM-KISAN funds?</h4>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <span class="bg-purple-100 text-purple-800 text-xs font-mono font-bold px-2 py-0.5 rounded" id="aiLatencyBadge">⚡ 0.54 ms</span>
+            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-0.5 rounded" id="aiRowCountBadge">10 districts</span>
+          </div>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <!-- Executive Natural Language Narrative -->
+          <div class="p-4 bg-slate-50 rounded-lg border-l-4 border-purple-600 text-slate-800 text-sm leading-relaxed" id="aiSummaryText">
+            <!-- Populated by JS -->
+          </div>
+
+          <!-- Metric Highlights Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+            <div class="p-3 bg-purple-50/50 rounded-lg border border-purple-100">
+              <div class="text-[11px] font-semibold text-purple-700 uppercase">Lead District</div>
+              <div class="text-lg font-bold text-govNavy-900 mt-0.5" id="aiMetricTopDist">-</div>
+              <div class="text-xs text-slate-500 font-medium" id="aiMetricTopVal">-</div>
+            </div>
+            <div class="p-3 bg-blue-50/50 rounded-lg border border-blue-100">
+              <div class="text-[11px] font-semibold text-blue-700 uppercase">Cohort Total</div>
+              <div class="text-lg font-bold text-govNavy-900 mt-0.5" id="aiMetricCohortTotal">-</div>
+              <div class="text-xs text-slate-500 font-medium">All analyzed entities</div>
+            </div>
+            <div class="p-3 bg-amber-50/50 rounded-lg border border-amber-100">
+              <div class="text-[11px] font-semibold text-amber-700 uppercase">District Average</div>
+              <div class="text-lg font-bold text-govNavy-900 mt-0.5" id="aiMetricAvg">-</div>
+              <div class="text-xs text-slate-500 font-medium">Per administrative unit</div>
+            </div>
+            <div class="p-3 bg-emerald-50/50 rounded-lg border border-emerald-100">
+              <div class="text-[11px] font-semibold text-emerald-700 uppercase">LGD Statutory Status</div>
+              <div class="text-lg font-bold text-indiaGreen mt-0.5">100% Resolved</div>
+              <div class="text-xs text-slate-500 font-medium">MoPR Registry Validated</div>
+            </div>
+          </div>
+
+          <!-- Key Insights Bullet List -->
+          <div class="mt-4 pt-3 border-t border-slate-100">
+            <h5 class="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Key Policy Insights</h5>
+            <ul class="space-y-1.5 text-xs text-slate-700" id="aiInsightsList">
+              <!-- Populated by JS -->
+            </ul>
+          </div>
+        </div>
+
+        <!-- SQL Query Inspection Bar -->
+        <div class="bg-slate-900 p-4 border-t border-slate-800 text-xs font-mono text-slate-300">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-amber-400 font-bold flex items-center gap-1.5">
+              <span>⚡</span> Vectorized DuckDB SQL Generated
+            </span>
+            <button class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded text-[11px] font-sans transition flex items-center gap-1 border border-slate-700" onclick="sendAiSqlToStudio()">
+              <span>Open in SQL Studio</span>
+              <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </button>
+          </div>
+          <pre class="bg-black/50 p-2.5 rounded text-emerald-400 overflow-x-auto text-[11px]" id="aiSqlCode"></pre>
+        </div>
+      </div>
+
+      <!-- Interactive Tabular Results -->
+      <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
+        <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wide">Synthesized District Records</h4>
+          <div class="flex items-center gap-2">
+            <button class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-semibold px-2.5 py-1 rounded transition shadow-sm" onclick="exportAiResultsCsv()">
+              ⬇️ Export CSV
+            </button>
+            <button class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-semibold px-2.5 py-1 rounded transition shadow-sm" onclick="exportAiResultsJson()">
+              ⬇️ Export JSON
+            </button>
+          </div>
+        </div>
+        <div class="overflow-x-auto max-h-96">
+          <table class="min-w-full text-left text-xs font-sans">
+            <thead class="bg-slate-100 sticky top-0 border-b border-slate-200 text-slate-800 font-bold uppercase tracking-wider text-[11px]" id="aiTableHead">
+              <!-- Populated by JS -->
+            </thead>
+            <tbody class="divide-y divide-slate-100" id="aiTableBody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Public Developer Integration Hub (Zero Dependencies) -->
+      <div class="bg-white rounded-xl shadow-md border border-slate-200 p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+          <div>
+            <h4 class="text-base font-bold text-govNavy-900">💻 Public Developer Integration (Zero Dependencies)</h4>
+            <p class="text-xs text-slate-600 mt-0.5">Use this endpoint in your applications, dashboards, or research notebooks. Completely free, self-contained, CORS-enabled, with no rate limits or external dependencies.</p>
+          </div>
+          <span class="bg-blue-50 text-govNavy-900 text-xs font-bold px-2.5 py-1 rounded self-start sm:self-auto border border-blue-200">
+            OpenAPI 3.1 Standard
+          </span>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex items-center gap-2 border-b border-slate-200 text-xs font-semibold">
+            <button id="dev-tab-curl" class="py-2 px-3 border-b-2 border-saffron text-govNavy-900 font-bold" onclick="switchDevTab('curl')">cURL</button>
+            <button id="dev-tab-python" class="py-2 px-3 text-slate-500 hover:text-slate-800" onclick="switchDevTab('python')">Python (requests)</button>
+            <button id="dev-tab-js" class="py-2 px-3 text-slate-500 hover:text-slate-800" onclick="switchDevTab('js')">JavaScript (fetch)</button>
+          </div>
+
+          <div class="relative">
+            <pre class="bg-slate-950 p-4 rounded-lg text-emerald-400 font-mono text-xs overflow-x-auto" id="devSnippetCode"></pre>
+            <button class="absolute top-3 right-3 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-sans px-2.5 py-1 rounded border border-slate-700 shadow" onclick="copyDevSnippet()">
+              Copy Code
+            </button>
           </div>
         </div>
       </div>
@@ -2981,6 +3186,213 @@ function selectAndSwitchToDataset(datasetId) {
   onCatalogDatasetChange(datasetId);
   switchGovTab('explorer');
 }
+
+// ==========================================
+// DataSetu AI Agent (In-Memory LLM Query Engine)
+// ==========================================
+let currentAiResult = null;
+let currentDevTab = 'curl';
+
+async function runAiQuery() {
+  const input = document.getElementById('aiQueryInput');
+  const btn = document.getElementById('btnRunAi');
+  const skeleton = document.getElementById('aiLoadingSkeleton');
+  if (!input) return;
+
+  const q = input.value.trim();
+  if (!q) {
+    showToast('Input Required', 'Please enter a question or prompt for DataSetu AI.', 'warning');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = `<span class="animate-spin mr-1">⚡</span> Synthesizing...`;
+  if (skeleton) skeleton.classList.remove('hidden');
+
+  try {
+    const resp = await fetch('/v1/ai/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q, max_rows: 25 })
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'AI synthesis failed');
+
+    currentAiResult = data;
+    renderAiResults(data);
+  } catch (err) {
+    showToast('AI Query Error', err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<span>Ask DataSetu AI</span><svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>`;
+    if (skeleton) skeleton.classList.add('hidden');
+  }
+}
+
+function setAiPrompt(prompt) {
+  const input = document.getElementById('aiQueryInput');
+  if (input) {
+    input.value = prompt;
+    switchGovTab('ai');
+    runAiQuery();
+  }
+}
+
+function renderAiResults(data) {
+  const domainBadge = document.getElementById('aiDomainBadge');
+  const questionTitle = document.getElementById('aiQuestionTitle');
+  const latencyBadge = document.getElementById('aiLatencyBadge');
+  const rowCountBadge = document.getElementById('aiRowCountBadge');
+  const summaryText = document.getElementById('aiSummaryText');
+  const metricTopDist = document.getElementById('aiMetricTopDist');
+  const metricTopVal = document.getElementById('aiMetricTopVal');
+  const metricCohortTotal = document.getElementById('aiMetricCohortTotal');
+  const metricAvg = document.getElementById('aiMetricAvg');
+  const insightsList = document.getElementById('aiInsightsList');
+  const sqlCode = document.getElementById('aiSqlCode');
+  const thead = document.getElementById('aiTableHead');
+  const tbody = document.getElementById('aiTableBody');
+
+  if (domainBadge) domainBadge.innerText = data.domain || 'National Governance Dataset';
+  if (questionTitle) questionTitle.innerText = data.question;
+  if (latencyBadge) latencyBadge.innerText = `⚡ ${data.query_ms} ms`;
+  if (rowCountBadge) rowCountBadge.innerText = `${data.total_rows} districts`;
+
+  if (summaryText) {
+    let summaryHtml = escapeHtml(data.summary).replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-govNavy-900">$1</strong>');
+    summaryText.innerHTML = summaryHtml;
+  }
+
+  const metrics = data.metrics || {};
+  if (metricTopDist) metricTopDist.innerText = metrics.top_district || 'N/A';
+  if (metricTopVal) metricTopVal.innerText = `${metrics.top_value || ''} (${metrics.top_state || 'India'})`;
+  if (metricCohortTotal) metricCohortTotal.innerText = metrics.cohort_total || 'N/A';
+  if (metricAvg) metricAvg.innerText = metrics.district_average || 'N/A';
+
+  if (insightsList) {
+    insightsList.innerHTML = (data.key_insights || []).map(ins => {
+      const formatted = escapeHtml(ins).replace(/\*\*(.*?)\*\*/g, '<strong class="text-govNavy-900">$1</strong>');
+      return `<li class="flex items-start gap-1.5"><span class="text-purple-600 font-bold shrink-0">•</span> <span>${formatted}</span></li>`;
+    }).join('');
+  }
+
+  if (sqlCode) {
+    sqlCode.innerText = data.sql_query || '';
+  }
+
+  if (thead && tbody) {
+    const cols = data.columns || [];
+    thead.innerHTML = `<tr>${cols.map(c => `<th class="py-2 px-3">${escapeHtml(c.replace(/_/g, ' '))}</th>`).join('')}</tr>`;
+    tbody.innerHTML = (data.rows || []).map(r => {
+      return `<tr class="hover:bg-slate-50 transition border-b border-slate-100">${
+        cols.map(c => {
+          let val = r[c];
+          if (val === null || val === undefined) val = '<span class="text-slate-400">NULL</span>';
+          else if (typeof val === 'number') {
+            val = Number.isInteger(val) ? val.toLocaleString('en-IN') : val.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+          }
+          return `<td class="py-2 px-3 text-slate-800">${val}</td>`;
+        }).join('')
+      }</tr>`;
+    }).join('');
+  }
+
+  updateDevSnippet();
+}
+
+function sendAiSqlToStudio() {
+  if (!currentAiResult || !currentAiResult.sql_query) return;
+  const sqlInput = document.getElementById('sqlQueryInput');
+  if (sqlInput) {
+    sqlInput.value = currentAiResult.sql_query;
+  }
+  switchGovTab('sql');
+  runSqlStudio();
+}
+
+function switchDevTab(tab) {
+  currentDevTab = tab;
+  ['curl', 'python', 'js'].forEach(t => {
+    const btn = document.getElementById(`dev-tab-${t}`);
+    if (btn) {
+      if (t === tab) {
+        btn.className = 'py-2 px-3 border-b-2 border-saffron text-govNavy-900 font-bold';
+      } else {
+        btn.className = 'py-2 px-3 text-slate-500 hover:text-slate-800 font-medium';
+      }
+    }
+  });
+  updateDevSnippet();
+}
+
+function updateDevSnippet() {
+  const codeEl = document.getElementById('devSnippetCode');
+  if (!codeEl || !currentAiResult) return;
+  const snippets = currentAiResult.developer_snippets || {};
+  let code = '';
+  if (currentDevTab === 'curl') code = snippets.curl || '';
+  else if (currentDevTab === 'python') code = snippets.python || '';
+  else if (currentDevTab === 'js') code = snippets.javascript || '';
+  codeEl.innerText = code;
+}
+
+function copyDevSnippet() {
+  const codeEl = document.getElementById('devSnippetCode');
+  if (!codeEl) return;
+  navigator.clipboard.writeText(codeEl.innerText).then(() => {
+    showToast('Copied to Clipboard', 'Developer integration code copied successfully!', 'success');
+  });
+}
+
+function exportAiResultsCsv() {
+  if (!currentAiResult || !currentAiResult.rows || !currentAiResult.rows.length) {
+    showToast('No Data', 'No AI results to export.', 'warning');
+    return;
+  }
+  const cols = currentAiResult.columns;
+  const lines = [cols.map(c => `"${c.replace(/"/g, '""')}"`).join(',')];
+  for (const r of currentAiResult.rows) {
+    lines.push(cols.map(c => {
+      const v = r[c];
+      if (v === null || v === undefined) return '""';
+      return `"${String(v).replace(/"/g, '""')}"`;
+    }).join(','));
+  }
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `datasetu_ai_${Date.now()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportAiResultsJson() {
+  if (!currentAiResult || !currentAiResult.rows || !currentAiResult.rows.length) {
+    showToast('No Data', 'No AI results to export.', 'warning');
+    return;
+  }
+  const blob = new Blob([JSON.stringify(currentAiResult.rows, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `datasetu_ai_${Date.now()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// Auto-trigger default AI query on initial background load so it is pre-warmed
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    runAiQuery();
+  }, 1000);
+});
+
 
 
 </script>

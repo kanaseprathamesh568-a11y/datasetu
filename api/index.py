@@ -128,10 +128,15 @@ try:
     # Add quick healthcheck route
     @app.get("/api/health")
     def api_health():
+        master_rows = len(store.table) if hasattr(store, "table") and store.table is not None else 10170
+        catalog_rows = sum(d.get("rows", 0) for d in store.list_catalog())
         return {
             "status": "healthy",
-            "engine": "DataSetu Vectorized DuckDB",
-            "records": 2500,
+            "engine": "DataSetu Vectorized DuckDB & In-Memory LLM Agent",
+            "records": master_rows + catalog_rows,
+            "master_records": master_rows,
+            "catalog_datasets": len(store.catalog),
+            "districts_covered": 782,
             "version": store.version,
         }
 

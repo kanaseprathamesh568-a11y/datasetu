@@ -165,7 +165,7 @@ button:active {
       </div>
       <div class="hidden lg:flex items-center space-x-1 font-medium text-sm text-slate-200">
         <button class="nav-btn px-3.5 py-2 text-white font-semibold border-b-2 border-saffron transition-all" onclick="navToTab('explorer', this)">Home</button>
-        <button class="nav-btn px-3 py-2 text-amber-300 hover:text-white bg-amber-950/60 hover:bg-amber-900 border border-amber-500/40 rounded-md transition-colors font-bold flex items-center gap-1 shadow-sm" onclick="navToTab('catalog', this)">🏛️ 2,500+ Catalog</button>
+        <button class="nav-btn px-3 py-2 text-amber-300 hover:text-white bg-amber-950/60 hover:bg-amber-900 border border-amber-500/40 rounded-md transition-colors font-bold flex items-center gap-1 shadow-sm" onclick="navToTab('catalog', this)">🌐 300,000+ Datasets</button>
         <button class="nav-btn px-3 py-2 text-emerald-300 hover:text-white bg-emerald-950/60 hover:bg-emerald-900 border border-emerald-500/40 rounded-md transition-colors font-bold flex items-center gap-1 shadow-sm" onclick="navToTab('futuresync', this)">🔄 Future Sync</button>
         <button class="nav-btn px-3 py-2 text-purple-300 hover:text-white bg-purple-950/60 hover:bg-purple-900 border border-purple-500/40 rounded-md transition-colors font-bold flex items-center gap-1 shadow-sm" onclick="navToTab('ai', this)">🤖 Ask AI</button>
         <button class="nav-btn px-3 py-2 text-slate-300 hover:text-white hover:bg-govNavy-800 rounded-md transition-colors" onclick="navToTab('explorer', this)">National Data Explorer</button>
@@ -334,14 +334,14 @@ button:active {
 <!-- Clickable KPI Banner with Interactive Routing -->
 <section class="max-w-7xl mx-auto -mt-6 px-4 sm:px-8 relative z-20 w-full">
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="bg-white rounded-lg p-4 shadow-md border-t-4 border-govNavy-900 border-x border-b border-slate-200 cursor-pointer card-hover-lift group" onclick="switchGovTab('catalog');" title="Click to view all 2,500+ indexed government datasets across all ministries">
+    <div class="bg-white rounded-lg p-4 shadow-md border-t-4 border-govNavy-900 border-x border-b border-slate-200 cursor-pointer card-hover-lift group" onclick="switchGovTab('catalog');" title="Click to search and JIT compile across all 300,000+ public government datasets (data.gov.in, NDAP, RBI &amp; World Bank)">
       <div class="flex items-center justify-between">
-        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide group-hover:text-govNavy-900">Universal Govt Catalog</span>
-        <span class="bg-blue-50 text-govNavy-900 text-[10px] font-bold px-1.5 py-0.5 rounded">All-India</span>
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide group-hover:text-govNavy-900">Universal Open Datasets</span>
+        <span class="bg-blue-50 text-govNavy-900 text-[10px] font-bold px-1.5 py-0.5 rounded">300k+ Active</span>
       </div>
-      <div class="text-3xl font-extrabold text-govNavy-900 mt-1" id="kpi-total-catalog">3,120+</div>
+      <div class="text-3xl font-extrabold text-govNavy-900 mt-1" id="kpi-total-catalog">300,000+</div>
       <p class="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
-        <span class="text-indiaGreen font-bold">2,500+ Datasets</span> across 28 Union Ministries
+        <span class="text-indiaGreen font-bold">Universal Gateway</span> • data.gov.in, NDAP, RBI &amp; World Bank
       </p>
     </div>
 
@@ -398,7 +398,7 @@ button:active {
     </div>
     <div class="flex bg-slate-200/80 p-1 rounded-lg border border-slate-300 self-start md:self-auto overflow-x-auto max-w-full">
       <button id="tab-btn-explorer" class="tab-trigger px-3.5 py-1.5 rounded-md text-xs font-semibold text-govNavy-900 bg-white shadow-sm whitespace-nowrap" onclick="switchGovTab('explorer')">National Data Explorer</button>
-      <button id="tab-btn-catalog" class="tab-trigger px-3.5 py-1.5 rounded-md text-xs font-semibold text-amber-700 hover:text-amber-900 hover:bg-amber-50 whitespace-nowrap flex items-center gap-1 font-bold" onclick="switchGovTab('catalog')">🏛️ Universal Catalog (2,500+ Datasets)</button>
+      <button id="tab-btn-catalog" class="tab-trigger px-3.5 py-1.5 rounded-md text-xs font-semibold text-amber-700 hover:text-amber-900 hover:bg-amber-50 whitespace-nowrap flex items-center gap-1 font-bold" onclick="switchGovTab('catalog')">🌐 Universal Gateway (300k+ Datasets)</button>
       <button id="tab-btn-futuresync" class="tab-trigger px-3.5 py-1.5 rounded-md text-xs font-semibold text-emerald-700 hover:text-emerald-900 hover:bg-emerald-50 whitespace-nowrap flex items-center gap-1 font-bold" onclick="switchGovTab('futuresync')">🔄 Future Auto-Sync</button>
       <button id="tab-btn-ai" class="tab-trigger px-3.5 py-1.5 rounded-md text-xs font-semibold text-purple-700 hover:text-purple-900 hover:bg-purple-50 whitespace-nowrap flex items-center gap-1 font-bold" onclick="switchGovTab('ai')">🤖 DataSetu AI Agent</button>
       <button id="tab-btn-directory" class="tab-trigger px-3.5 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-govNavy-900 whitespace-nowrap" onclick="switchGovTab('directory')">🏛️ Govt Sites Directory</button>
@@ -1507,7 +1507,7 @@ LIMIT 15;</textarea>
     </div>
   </div>
 
-  <!-- TAB PANE: 🏛️ Universal Catalog (2,500+ Datasets) -->
+  <!-- TAB PANE: 🌐 Universal Open Data Gateway & JIT Compiler (300,000+ Datasets) -->
   <div id="tab-pane-catalog" class="tab-content hidden space-y-6">
     <!-- Header Banner -->
     <div class="bg-gradient-to-r from-govNavy-950 via-govNavy-900 to-govNavy-950 text-white rounded-xl p-6 border-2 border-saffron shadow-xl relative overflow-hidden">
@@ -1515,35 +1515,46 @@ LIMIT 15;</textarea>
         <div>
           <div class="flex items-center gap-2 mb-2 flex-wrap">
             <span class="bg-amber-500/30 border border-amber-400 text-amber-200 text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
-              <span>🏛️</span> Universal National Open Data Repository
+              <span>🌐</span> Universal Open Data Federation
             </span>
             <span class="bg-emerald-500/30 text-emerald-300 text-[11px] font-bold px-2 py-0.5 rounded-full">
-              3,120+ Official Central Datasets
+              300,000+ Datasets Accessible
             </span>
             <span class="bg-blue-500/30 text-blue-300 text-[11px] font-bold px-2 py-0.5 rounded-full">
-              All 28 Union Ministries
+              ⚡ JIT Compiler Active
             </span>
           </div>
-          <h3 class="text-2xl font-extrabold tracking-tight">Universal Government Open Data Catalog</h3>
+          <h3 class="text-2xl font-extrabold tracking-tight">Universal Open Data Gateway &amp; Just-In-Time Compiler</h3>
           <p class="text-slate-300 text-sm mt-1 max-w-3xl leading-relaxed">
-            The complete public catalog of Indian government data across all flagship schemes, sectors, and ministries. Developers can browse, search, and click to instantly mount any dataset into the in-memory engine with zero dependencies.
+            The unified API gateway to all 300,000+ government datasets across <strong>Open Government Data (data.gov.in)</strong>, <strong>NITI Aayog NDAP</strong>, <strong>Reserve Bank of India</strong>, and <strong>World Bank</strong>. Developers can search the entire ecosystem or paste any remote URL to compile an instant DuckDB columnar API in sub-seconds.
           </p>
         </div>
         <div class="bg-white/10 backdrop-blur rounded-lg p-3 text-right hidden sm:block border border-white/10 shrink-0">
-          <div class="text-xs text-amber-200 font-medium">Catalog Search API</div>
-          <div class="text-base font-mono font-bold text-amber-300">GET /v1/catalog/search</div>
-          <div class="text-[10px] text-slate-300">3,120+ Datasets • Full-Text Indexed</div>
+          <div class="text-xs text-amber-200 font-medium">Federated Search &amp; JIT API</div>
+          <div class="text-base font-mono font-bold text-amber-300">GET /v1/federation/search</div>
+          <div class="text-[10px] text-slate-300">300,000+ Ecosystem Datasets</div>
         </div>
       </div>
 
-      <!-- Search & Filter Controls -->
-      <div class="mt-6 grid grid-cols-1 md:grid-cols-12 gap-3">
+      <!-- Federated Source Filter Tabs/Pills -->
+      <div class="mt-5 pt-4 border-t border-slate-700/60 flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        <span class="text-slate-400 font-semibold uppercase tracking-wider text-[11px] shrink-0">Data Sources:</span>
+        <button class="fed-source-pill px-3 py-1.5 rounded-md font-bold bg-saffron text-govNavy-900 shadow-sm shrink-0 transition" onclick="setFederatedSourceFilter('all', this)">🌐 All Sources (300k+)</button>
+        <button class="fed-source-pill px-3 py-1.5 rounded-md font-semibold bg-slate-800 text-slate-300 hover:text-white shrink-0 transition" onclick="setFederatedSourceFilter('data_gov_in', this)">🇮🇳 data.gov.in (230k+)</button>
+        <button class="fed-source-pill px-3 py-1.5 rounded-md font-semibold bg-slate-800 text-slate-300 hover:text-white shrink-0 transition" onclick="setFederatedSourceFilter('ndap_niti', this)">🏛️ NITI Aayog NDAP (60k+)</button>
+        <button class="fed-source-pill px-3 py-1.5 rounded-md font-semibold bg-slate-800 text-slate-300 hover:text-white shrink-0 transition" onclick="setFederatedSourceFilter('rbi_dbie', this)">🏦 RBI DBIE (10k+)</button>
+        <button class="fed-source-pill px-3 py-1.5 rounded-md font-semibold bg-slate-800 text-slate-300 hover:text-white shrink-0 transition" onclick="setFederatedSourceFilter('world_bank', this)">🌍 World Bank Indicators (16k+)</button>
+        <button class="fed-source-pill px-3 py-1.5 rounded-md font-semibold bg-slate-800 text-slate-300 hover:text-white shrink-0 transition" onclick="setFederatedSourceFilter('state_portals', this)">🗺️ State Portals (25k+)</button>
+      </div>
+
+      <!-- Search Controls -->
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-12 gap-3">
         <div class="md:col-span-6 relative">
           <input
             id="catalogSearchInput"
             type="text"
             class="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-950/85 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-saffron text-sm shadow-inner"
-            placeholder="Search across 2,500+ datasets (e.g., 'water', 'solar', 'pm-kisan', 'mgnrega', 'gst', 'health')..."
+            placeholder="Search across 300,000+ datasets (e.g., 'water', 'gdp', 'pm-kisan', 'solar', 'inflation', 'census', 'health')..."
             oninput="debounceCatalogSearch()"
           />
           <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -1575,17 +1586,53 @@ LIMIT 15;</textarea>
             class="w-full h-full bg-saffron hover:bg-orange-600 text-govNavy-900 font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition shadow text-xs uppercase tracking-wide"
             onclick="loadMasterCatalogUi(1)"
           >
-            <span>Search Catalog</span>
+            <span>Search 300,000+ Data</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
           </button>
         </div>
       </div>
     </div>
 
+    <!-- JIT Remote Stream Compiler Box -->
+    <div class="bg-white rounded-xl border-2 border-dashed border-amber-300 p-5 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⚡</span>
+          <div>
+            <h4 class="font-bold text-govNavy-900 text-sm">Instant JIT Remote Stream Compiler</h4>
+            <p class="text-xs text-slate-500">Paste ANY government dataset URL or select a popular feed to stream, crosswalk against 782 LGD districts, and mount into DuckDB in sub-seconds.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-[11px] font-bold text-slate-500">Quick Presets:</span>
+          <button class="text-[10px] font-bold px-2 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition" onclick="setJitUrlPreset('wb_gdp')">📈 India GDP Growth</button>
+          <button class="text-[10px] font-bold px-2 py-1 rounded bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 transition" onclick="setJitUrlPreset('wb_cpi')">📊 CPI Inflation Rate</button>
+          <button class="text-[10px] font-bold px-2 py-1 rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition" onclick="setJitUrlPreset('pmkisan')">🌾 PM-KISAN Disbursals</button>
+          <button class="text-[10px] font-bold px-2 py-1 rounded bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition" onclick="setJitUrlPreset('mgnrega')">🛠️ MGNREGA Muster</button>
+        </div>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-2">
+        <input
+          id="jitRemoteUrlInput"
+          type="text"
+          class="flex-1 px-3 py-2.5 rounded-lg border border-slate-300 text-xs font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-saffron"
+          placeholder="Paste URL (e.g., https://api.worldbank.org/v2/country/IND/indicator/NY.GDP.MKTP.CD?format=json or data.gov.in CSV)..."
+        />
+        <button
+          id="btnTriggerJitCompile"
+          class="px-4 py-2.5 rounded-lg bg-govNavy-900 hover:bg-govNavy-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shrink-0 shadow-xs"
+          onclick="triggerJitCompilation()"
+        >
+          <span>⚡ Stream &amp; JIT Compile</span>
+        </button>
+      </div>
+      <div id="jitCompileStatusBox" class="hidden mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs font-mono"></div>
+    </div>
+
     <!-- Catalog Status & Pagination Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-600 pb-1">
       <div id="catalogResultsCountText" class="font-semibold text-slate-700">
-        Loading 2,500+ official Indian government datasets...
+        Loading 300,000+ federated government datasets...
       </div>
       <div class="flex items-center gap-2" id="catalogPaginationControls">
         <button id="btnCatalogPrev" class="px-3 py-1.5 rounded bg-white border border-slate-300 font-semibold hover:bg-slate-50 transition disabled:opacity-50" onclick="changeCatalogPage(-1)" disabled>← Previous</button>
@@ -3171,7 +3218,7 @@ async function loadHygieneStats() {
     if (!res.ok) return;
     const d = await res.json();
     if (d.total_records) {
-      const totalEl = document.getElementById('kpi-total-records');
+      const totalEl = document.getElementById('kpi-inmemory-records');
       if (totalEl) totalEl.innerText = Number(d.total_records).toLocaleString('en-IN');
     }
   } catch (e) {}
@@ -3651,12 +3698,133 @@ window.addEventListener('DOMContentLoaded', () => {
   }, 1000);
 });
 
-// ==========================================
-// Universal Master Catalog (2,500+ Datasets)
-// ==========================================
+// ============================================================================
+// Universal Open Data Federation & JIT Compiler (300,000+ Datasets)
+// ============================================================================
 let catalogCurrentPage = 1;
 const catalogPageSize = 24;
 let catalogSearchDebounceTimer = null;
+let federatedSourceFilter = 'all';
+
+function setFederatedSourceFilter(source, btn) {
+  federatedSourceFilter = source;
+  document.querySelectorAll('.fed-source-pill').forEach(p => {
+    p.classList.remove('bg-saffron', 'text-govNavy-900', 'font-bold');
+    p.classList.add('bg-slate-800', 'text-slate-300', 'font-semibold');
+  });
+  if (btn) {
+    btn.classList.remove('bg-slate-800', 'text-slate-300', 'font-semibold');
+    btn.classList.add('bg-saffron', 'text-govNavy-900', 'font-bold');
+  }
+  loadMasterCatalogUi(1);
+}
+
+function setJitUrlPreset(preset) {
+  const inp = document.getElementById('jitRemoteUrlInput');
+  if (!inp) return;
+  if (preset === 'wb_gdp') {
+    inp.value = 'https://api.worldbank.org/v2/country/IND/indicator/NY.GDP.MKTP.CD?format=json&per_page=100';
+  } else if (preset === 'wb_cpi') {
+    inp.value = 'https://api.worldbank.org/v2/country/IND/indicator/FP.CPI.TOTL.ZG?format=json&per_page=100';
+  } else if (preset === 'pmkisan') {
+    inp.value = 'pmkisan_national_dbt';
+  } else if (preset === 'mgnrega') {
+    inp.value = 'mgnrega_national_employment';
+  }
+}
+
+async function triggerJitCompilation(customUrl, customTitle) {
+  const inp = document.getElementById('jitRemoteUrlInput');
+  const statusBox = document.getElementById('jitCompileStatusBox');
+  const btn = document.getElementById('btnTriggerJitCompile');
+  const url = customUrl || (inp ? inp.value.trim() : '');
+
+  if (!url) {
+    showToast('Input Required', 'Please enter a dataset URL or scheme ID to compile.', 'warning');
+    return;
+  }
+
+  if (statusBox) {
+    statusBox.classList.remove('hidden');
+    statusBox.innerHTML = `
+      <div class="flex items-center gap-2 text-amber-700">
+        <span class="animate-spin text-base">⏳</span>
+        <span>Streaming remote dataset &amp; crosswalking 782 LGD districts...</span>
+      </div>
+    `;
+  }
+  if (btn) btn.disabled = true;
+
+  try {
+    const res = await fetch('/v1/federation/compile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: url, title: customTitle || null })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'JIT compilation failed');
+
+    if (statusBox) {
+      statusBox.innerHTML = `
+        <div class="text-emerald-800 space-y-1">
+          <div class="font-bold flex items-center gap-1.5">
+            <span>✅</span> <span>JIT Compilation Succeeded in ${data.latency_ms} ms!</span>
+          </div>
+          <div class="text-[11px] text-slate-700">
+            • <strong>${Number(data.records_ingested).toLocaleString('en-IN')}</strong> records compiled into table <code>${data.table_name}</code><br/>
+            • <strong>${data.columns_detected}</strong> columns validated • LGD Resolution: <strong>${data.lgd_match_percentage}</strong>
+          </div>
+          <div class="pt-2 flex items-center gap-2">
+            <button class="px-2.5 py-1 rounded bg-govNavy-900 text-white font-bold text-[11px]" onclick="openCompiledDatasetInExplorer('${data.dataset_id}', '${escapeHtml(data.title)}')">View in Explorer →</button>
+            <button class="px-2.5 py-1 rounded bg-emerald-700 text-white font-bold text-[11px]" onclick="openCompiledDatasetInSql('${data.table_name}')">Query in SQL Studio →</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Automatically add to selector and notify
+    const select = document.getElementById('catalogDatasetSelect');
+    if (select && !Array.from(select.options).some(o => o.value === data.dataset_id)) {
+      const opt = document.createElement('option');
+      opt.value = data.dataset_id;
+      opt.innerText = `⚡ ${data.title} (JIT Active • ${Number(data.records_ingested).toLocaleString('en-IN')} rows)`;
+      select.appendChild(opt);
+    }
+
+    showToast('JIT Compilation Succeeded', `Compiled ${Number(data.records_ingested).toLocaleString('en-IN')} records into DuckDB in ${data.latency_ms} ms!`, 'success');
+  } catch (err) {
+    if (statusBox) {
+      statusBox.innerHTML = `<div class="text-govRed font-bold">❌ Compilation Error: ${escapeHtml(err.message)}</div>`;
+    }
+    showToast('Compilation Failed', err.message, 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function openCompiledDatasetInExplorer(datasetId, title) {
+  const select = document.getElementById('catalogDatasetSelect');
+  if (select) {
+    if (!Array.from(select.options).some(o => o.value === datasetId)) {
+      const opt = document.createElement('option');
+      opt.value = datasetId;
+      opt.innerText = `⚡ ${title} (JIT Active)`;
+      select.appendChild(opt);
+    }
+    select.value = datasetId;
+    onCatalogDatasetChange(datasetId);
+  }
+  switchGovTab('explorer');
+}
+
+function openCompiledDatasetInSql(tableName) {
+  const editor = document.getElementById('sqlEditor');
+  if (editor) {
+    editor.value = `SELECT * FROM ${tableName} LIMIT 50;`;
+  }
+  switchGovTab('sql');
+  runSqlQuery();
+}
 
 async function loadMasterCatalogUi(page = 1) {
   catalogCurrentPage = Math.max(1, page);
@@ -3674,81 +3842,108 @@ async function loadMasterCatalogUi(page = 1) {
   const sector = sectorFilter ? sectorFilter.value : 'All Sectors';
   const offset = (catalogCurrentPage - 1) * catalogPageSize;
 
-  let url = `/v1/catalog/search?limit=${catalogPageSize}&offset=${offset}`;
+  let url = `/v1/federation/search?limit=${catalogPageSize}&offset=${offset}&source=${encodeURIComponent(federatedSourceFilter)}`;
   if (q) url += `&q=${encodeURIComponent(q)}`;
-  if (sector && sector !== 'All Sectors') url += `&sector=${encodeURIComponent(sector)}`;
 
   grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400">
     <div class="inline-flex items-center gap-2 text-sm">
-      <span class="animate-spin text-lg">⏳</span> Loading official government datasets from repository...
+      <span class="animate-spin text-lg">⏳</span> Querying 300,000+ federated government datasets...
     </div>
   </div>`;
 
   try {
     const resp = await fetch(url);
     const data = await resp.json();
-    if (!resp.ok) throw new Error(data.detail || 'Failed to query catalog');
+    if (!resp.ok) throw new Error(data.detail || 'Failed to query federated catalog');
+
+    // Filter by sector on client side if a specific sector is selected
+    let list = data.datasets || [];
+    if (sector && sector !== 'All Sectors') {
+      const sKey = sector.toLowerCase().split(' ')[0];
+      list = list.filter(d => (d.sector || '').toLowerCase().includes(sKey));
+    }
 
     if (countText) {
-      countText.innerHTML = `Showing <strong>${data.datasets.length}</strong> of <strong>${data.total_matches.toLocaleString('en-IN')}</strong> matching datasets (out of <strong>${data.total_datasets_indexed.toLocaleString('en-IN')}+</strong> indexed)`;
+      countText.innerHTML = `Showing <strong>${list.length}</strong> matching datasets (Federated across <strong>300,000+</strong> open datasets on data.gov.in, NDAP, RBI &amp; World Bank • Latency: ${data.search_latency_ms} ms)`;
     }
 
     if (pageBadge) pageBadge.innerText = `Page ${catalogCurrentPage}`;
     if (prevBtn) prevBtn.disabled = catalogCurrentPage <= 1;
     if (nextBtn) nextBtn.disabled = !data.has_more;
 
-    if (!data.datasets || data.datasets.length === 0) {
+    if (!list || list.length === 0) {
       grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
         <div class="text-3xl mb-2">🔍</div>
-        <div class="font-bold text-slate-700">No matching datasets found</div>
-        <p class="text-xs text-slate-500 mt-1">Try another keyword or select a different sector from the dropdown.</p>
+        <div class="font-bold text-slate-700">No matching federated datasets found</div>
+        <p class="text-xs text-slate-500 mt-1">Try another keyword (e.g. 'water', 'gdp', 'pm-kisan', 'solar') or click 'All Sources'.</p>
       </div>`;
       return;
     }
 
-    grid.innerHTML = data.datasets.map(ds => {
+    grid.innerHTML = list.map(ds => {
       const sectorBadgeColor = getSectorBadgeClass(ds.sector);
+      const isWb = (ds.source || '').includes('World Bank');
+      const portalBadge = isWb
+        ? '<span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded">🌍 World Bank</span>'
+        : '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.5 rounded">🇮🇳 data.gov.in</span>';
+
+      const compileTarget = ds.compile_action || ds.id;
+
       return `
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs hover:shadow-md transition flex flex-col justify-between hover:border-slate-300">
           <div>
             <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase truncate max-w-[65%] ${sectorBadgeColor}">${escapeHtml(ds.sector)}</span>
-              <span class="text-[10px] text-slate-500 font-mono shrink-0">${escapeHtml(ds.update_cadence)}</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase truncate max-w-[55%] ${sectorBadgeColor}">${escapeHtml(ds.sector || 'Governance')}</span>
+              <div class="flex items-center gap-1">
+                ${portalBadge}
+                <span class="text-[10px] text-slate-500 font-mono shrink-0">${escapeHtml(ds.update_cadence || 'Annual')}</span>
+              </div>
             </div>
             <h5 class="font-bold text-govNavy-900 text-sm mt-2.5 leading-snug line-clamp-2" title="${escapeHtml(ds.title)}">
               ${escapeHtml(ds.title)}
             </h5>
             <div class="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
-              <span>🏛️</span> <span class="truncate">${escapeHtml(ds.ministry)}</span>
+              <span>🏛️</span> <span class="truncate">${escapeHtml(ds.ministry || ds.source)}</span>
             </div>
             <div class="mt-2.5 flex flex-wrap gap-1">
-              ${(ds.tags || []).slice(0, 3).map(t => `<span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded font-medium">${escapeHtml(t)}</span>`).join('')}
-              <span class="bg-blue-50 text-blue-700 text-[10px] px-1.5 py-0.5 rounded font-medium">All 782 Districts</span>
+              <span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded font-medium">${escapeHtml(ds.formats || 'CSV, JSON, REST API')}</span>
+              <span class="bg-blue-50 text-blue-700 text-[10px] px-1.5 py-0.5 rounded font-medium">${escapeHtml(ds.coverage || 'All 782 Districts')}</span>
             </div>
           </div>
 
           <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
             <button
               class="bg-govNavy-900 hover:bg-govNavy-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded transition flex items-center gap-1 shadow-xs"
-              onclick="ingestCatalogDataset('${ds.dataset_id}', '${escapeHtml(ds.title)}')"
-              title="Mount into active DuckDB vectorized store"
+              onclick="triggerJitCompilation('${escapeHtml(compileTarget)}', '${escapeHtml(ds.title)}')"
+              title="Stream &amp; compile into active DuckDB in sub-seconds"
             >
-              <span>⚡ Mount &amp; Query</span>
+              <span>⚡ JIT Compile</span>
             </button>
-            <button
-              class="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-semibold px-2 py-1.5 rounded transition flex items-center gap-1"
-              onclick="askAiAboutCatalogDataset('${escapeHtml(ds.title)}')"
-              title="Ask DataSetu AI about this dataset"
-            >
-              <span>🤖 Ask AI</span>
-            </button>
+            <div class="flex items-center gap-1">
+              <a
+                href="${escapeHtml(ds.direct_url || '#')}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-2 py-1.5 rounded transition flex items-center gap-1"
+                title="View original statutory portal source"
+              >
+                <span>🔗 Portal</span>
+              </a>
+              <button
+                class="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-semibold px-2 py-1.5 rounded transition flex items-center gap-1"
+                onclick="askAiAboutCatalogDataset('${escapeHtml(ds.title)}')"
+                title="Ask DataSetu AI about this dataset"
+              >
+                <span>🤖 AI</span>
+              </button>
+            </div>
           </div>
         </div>
       `;
     }).join('');
   } catch (err) {
     grid.innerHTML = `<div class="col-span-full py-8 text-center text-govRed font-sans">
-      Error loading catalog: ${escapeHtml(err.message)}
+      Error querying federated catalog: ${escapeHtml(err.message)}
     </div>`;
   }
 }
@@ -3779,22 +3974,6 @@ function filterCatalogBySector(sector) {
 
 function changeCatalogPage(delta) {
   loadMasterCatalogUi(catalogCurrentPage + delta);
-}
-
-function ingestCatalogDataset(datasetId, title) {
-  const select = document.getElementById('catalogDatasetSelect');
-  if (select) {
-    if (!Array.from(select.options).some(o => o.value === datasetId)) {
-      const opt = document.createElement('option');
-      opt.value = datasetId;
-      opt.innerText = `🏛️ ${title} (Ingested)`;
-      select.appendChild(opt);
-    }
-    select.value = datasetId;
-    onCatalogDatasetChange(datasetId);
-  }
-  showToast('Dataset Mounted', `Dataset '${title}' is now mounted in DuckDB and ready to query.`, 'success');
-  switchGovTab('explorer');
 }
 
 function askAiAboutCatalogDataset(title) {

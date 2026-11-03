@@ -41,6 +41,7 @@ from pydantic import BaseModel, Field, create_model
 from datasetu.ai import AIQueryEngine
 from datasetu.catalog_index import UniversalCatalogIndex
 from datasetu.db import DatasetStore, _safe_sql_ident
+from datasetu.federation import OpenDataFederationEngine
 from datasetu.harvester import FutureSyncEngine
 from datasetu.security import (
     RateLimitMiddleware,
@@ -70,6 +71,13 @@ class FutureSubscribeRequest(BaseModel):
     title: str = Field(..., description="Human-readable title or scheme name")
     portal: Optional[str] = Field("Union Ministry Portal", description="Publishing portal name")
     cadence: Optional[str] = Field("Daily", description="Expected update frequency (Hourly, Daily, Weekly, Monthly)")
+
+
+class FederationCompileRequest(BaseModel):
+    """Request model for Just-In-Time (JIT) compilation of remote open datasets into DuckDB."""
+
+    url: str = Field(..., description="Direct CSV, JSON, or World Bank API URL to ingest and compile")
+    title: Optional[str] = Field(None, description="Optional title for the dataset")
 
 
 def _build_pydantic_record_model(schema: List[Dict[str, str]]) -> Type[BaseModel]:
@@ -972,6 +980,43 @@ def build_app(
             portal=payload.portal or "Government Portal",
             cadence=payload.cadence or "Daily",
         )
+
+    federation_engine = OpenDataFederationEngine(store)
+
+    @app.get(
+        "/v1/federation/sources",
+        tags=["Open Data Federation (300k+ Datasets)"],
+        summary="List all connected government open data portals and global repositories",
+    )
+    def list_federated_sources():
+        return {
+            "total_ecosystem_scale": "300,000+ Open Datasets",
+            "sources": federation_engine.get_sources(),
+        }
+
+    @app.get(
+        "/v1/federation/search",
+        tags=["Open Data Federation (300k+ Datasets)"],
+        summary="Search across 300,000+ government and global open datasets (data.gov.in, NDAP, World Bank, etc.)",
+    )
+    def search_federated_datasets(
+        q: str = Query(..., description="Keywords to match across all 300,000+ datasets"),
+        source: str = Query("all", description="Source filter (all, data_gov_in, ndap_niti, world_bank)"),
+        limit: int = Query(25, ge=1, le=100, description="Max datasets to return"),
+        offset: int = Query(0, ge=0, description="Pagination offset"),
+    ):
+        return federation_engine.search_federated(query=q, source=source, limit=limit, offset=offset)
+
+    @app.post(
+        "/v1/federation/compile",
+        tags=["Open Data Federation (300k+ Datasets)"],
+        summary="Just-In-Time (JIT) compile any remote dataset from 300k+ ecosystem into active DuckDB",
+    )
+    async def compile_federated_dataset_jit(payload: FederationCompileRequest):
+        try:
+            return await federation_engine.compile_remote_dataset_jit(url=payload.url, title=payload.title)
+        except Exception as err:
+            raise HTTPException(status_code=400, detail=str(err))
 
     return app
 

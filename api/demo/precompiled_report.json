@@ -3,9 +3,9 @@
     "Financial Provisions (INR) - Central Sanctioned Allocation": {
       "original_type": "string",
       "target_type": "double",
-      "converted_count": 10170,
+      "converted_count": 11742,
       "nulled_count": 0,
-      "total_count": 10170,
+      "total_count": 11742,
       "sample_values": [
         22468045.7,
         26012517.52,
@@ -15,9 +15,9 @@
     "Financial Provisions (INR) - State Matching Share Released": {
       "original_type": "string",
       "target_type": "double",
-      "converted_count": 10170,
+      "converted_count": 11742,
       "nulled_count": 0,
-      "total_count": 10170,
+      "total_count": 11742,
       "sample_values": [
         2246804.57,
         10405007.01,
@@ -27,9 +27,9 @@
     "Execution & Audit - Actual Expenditure Incurred": {
       "original_type": "string",
       "target_type": "double",
-      "converted_count": 10170,
+      "converted_count": 11742,
       "nulled_count": 0,
-      "total_count": 10170,
+      "total_count": 11742,
       "sample_values": [
         21322256.08,
         20013639.43,
@@ -39,9 +39,9 @@
     "Impact Metrics - Beneficiaries Reached": {
       "original_type": "string",
       "target_type": "int64",
-      "converted_count": 10170,
+      "converted_count": 11742,
       "nulled_count": 0,
-      "total_count": 10170,
+      "total_count": 11742,
       "sample_values": [
         21580,
         11657,
@@ -50,29 +50,29 @@
     }
   },
   "district_stats": {
-    "total_districts": 10170,
-    "matched_exact": 10166,
-    "matched_alias": 4,
+    "total_districts": 11742,
+    "matched_exact": 11730,
+    "matched_alias": 12,
     "matched_fuzzy": 0,
     "unmatched": 0,
     "needs_review": 0,
-    "safe_matches": 10170,
+    "safe_matches": 11742,
     "unmatched_names": []
   },
   "timings_ms": {
-    "lgd_resolution_ms": 16652.96,
-    "numeral_parsing_ms": 373.13,
-    "total_normalization_ms": 17027.64
+    "lgd_resolution_ms": 18596.5,
+    "numeral_parsing_ms": 437.44,
+    "total_normalization_ms": 19035.85
   },
-  "total_rows": 10170,
+  "total_rows": 11742,
   "encoding": "cp1252",
   "header_row_index": 0,
   "preamble_rows_stripped": 0,
   "notes": [
-    "LGD district matching resolved 10170/10170 districts (10166 exact, 4 alias, 0 fuzzy, 0 unmatched, 0 flagged for review)",
-    "Converted 'Financial Provisions (INR) - Central Sanctioned Allocation' to double (10170 parsed, 0 nulled)",
-    "Converted 'Financial Provisions (INR) - State Matching Share Released' to double (10170 parsed, 0 nulled)",
-    "Converted 'Execution & Audit - Actual Expenditure Incurred' to double (10170 parsed, 0 nulled)",
-    "Converted 'Impact Metrics - Beneficiaries Reached' to int64 (10170 parsed, 0 nulled)"
+    "LGD district matching resolved 11742/11742 districts (11730 exact, 12 alias, 0 fuzzy, 0 unmatched, 0 flagged for review)",
+    "Converted 'Financial Provisions (INR) - Central Sanctioned Allocation' to double (11742 parsed, 0 nulled)",
+    "Converted 'Financial Provisions (INR) - State Matching Share Released' to double (11742 parsed, 0 nulled)",
+    "Converted 'Execution & Audit - Actual Expenditure Incurred' to double (11742 parsed, 0 nulled)",
+    "Converted 'Impact Metrics - Beneficiaries Reached' to int64 (11742 parsed, 0 nulled)"
   ]
 }

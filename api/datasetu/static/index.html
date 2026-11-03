@@ -422,7 +422,7 @@ button:active {
         <div class="flex items-center space-x-1.5 bg-amber-50 border border-amber-200 rounded px-2.5 py-1 shadow-xs">
           <span class="text-[11px] font-bold text-amber-900 flex items-center gap-1">📚 Dataset:</span>
           <select id="catalogDatasetSelect" class="text-xs font-semibold border-amber-300 rounded text-govNavy-900 py-0.5 px-1 bg-white focus:ring-govNavy-900 max-w-xs md:max-w-md" onchange="onCatalogDatasetChange(this.value)">
-            <option value="master">🇮🇳 Bharat Governance Master (10,170 records • 782 Districts)</option>
+            <option value="master">🇮🇳 Bharat Governance Master (11,742 records • 782 Districts)</option>
             <option value="pmkisan_national_dbt">🌾 PM-KISAN Direct Benefit Transfer (1,564 rows • Agriculture)</option>
             <option value="mgnrega_national_employment">🛠️ MGNREGA Rural Employment Guarantee (1,564 rows • Rural Dev)</option>
             <option value="jal_jeevan_tap_water">🚰 Jal Jeevan Mission Har Ghar Jal (1,564 rows • Jal Shakti)</option>
@@ -485,14 +485,17 @@ button:active {
           <option value="West Bengal">West Bengal</option>
         </select>
         <select id="schemeFilter" class="text-xs border-slate-300 rounded focus:ring-govNavy-800 text-slate-700 py-1.5" onchange="loadExplorerData(1)">
-          <option value="ALL">All Sectors & Flagship Schemes</option>
-          <option value="Agriculture & Farmers Welfare">Agriculture & Farmers Welfare</option>
-          <option value="Drinking Water & Sanitation">Drinking Water & Sanitation</option>
-          <option value="Economy & Finance">Economy & Finance</option>
-          <option value="Education & Skill Development">Education & Skill Development</option>
-          <option value="Health & Family Welfare">Health & Family Welfare</option>
-          <option value="Road Transport & Highways">Road Transport & Highways</option>
-          <option value="Rural Development">Rural Development</option>
+          <option value="ALL">All Sectors &amp; Flagship Schemes</option>
+          <option value="Agriculture & Farmers Welfare">🌾 Agriculture &amp; Farmers Welfare</option>
+          <option value="Drinking Water & Sanitation">💧 Drinking Water &amp; Sanitation</option>
+          <option value="Economy & Finance">💰 Economy &amp; Finance</option>
+          <option value="Education & Skill Development">🎓 Education &amp; Skill Development</option>
+          <option value="Health & Family Welfare">🏥 Health &amp; Family Welfare</option>
+          <option value="Housing & Urban Affairs">🏙️ Housing &amp; Urban Affairs</option>
+          <option value="Power & Energy">☀️ Power &amp; Energy</option>
+          <option value="Road Transport & Highways">🚗 Road Transport &amp; Highways</option>
+          <option value="Rural Development">🛠️ Rural Development</option>
+          <option value="Women & Child Development">👶 Women &amp; Child Development</option>
         </select>
         <button id="btn-filter-disinfected" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-semibold px-2 py-1 rounded flex items-center gap-1 transition" onclick="toggleOnlyDisinfected()">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
@@ -500,7 +503,7 @@ button:active {
         </button>
       </div>
       <div class="text-xs text-slate-500 flex items-center justify-between lg:justify-end gap-2">
-        <span class="">Showing <strong id="recordCountText" class="text-slate-800">1 – 25 of 10,170</strong> verified records</span>
+        <span class="">Showing <strong id="recordCountText" class="text-slate-800">1 – 25 of 11,742</strong> verified records</span>
         <button class="text-xs text-govRed hover:underline font-medium" onclick="resetExplorerFilters()">Reset All</button>
       </div>
     </div>

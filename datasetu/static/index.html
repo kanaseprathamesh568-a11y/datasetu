@@ -447,16 +447,16 @@ button:active {
       </div>
       <div class="flex items-center space-x-1.5 flex-wrap">
         <span class="text-slate-500 font-medium text-[11px]">Instant Export:</span>
-        <a id="btnExportCsv" href="/v1/data?format=csv&limit=10170" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border border-slate-300 font-medium text-xs transition flex items-center gap-1" download="bharat_governance_master_2026.csv">
+        <a id="btnExportCsv" href="/v1/data?format=csv&limit=11742" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border border-slate-300 font-medium text-xs transition flex items-center gap-1" download="bharat_governance_master_2026.csv">
           <span>⬇️ CSV</span>
         </a>
-        <a id="btnExportParquet" href="/v1/data?format=parquet&limit=10170" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border border-slate-300 font-medium text-xs transition flex items-center gap-1" download="bharat_governance_master_2026.parquet">
+        <a id="btnExportParquet" href="/v1/data?format=parquet&limit=11742" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border border-slate-300 font-medium text-xs transition flex items-center gap-1" download="bharat_governance_master_2026.parquet">
           <span>⬇️ Parquet</span>
         </a>
-        <a id="btnExportGeoJson" href="/v1/geojson?limit=10170" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border border-slate-300 font-medium text-xs transition flex items-center gap-1" download="bharat_governance_centroids.geojson">
+        <a id="btnExportGeoJson" href="/v1/geojson?limit=11742" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border border-slate-300 font-medium text-xs transition flex items-center gap-1" download="bharat_governance_centroids.geojson">
           <span>🗺️ GeoJSON</span>
         </a>
-        <a id="btnExportJson" href="/v1/data?limit=10170" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border border-slate-300 font-medium text-xs transition flex items-center gap-1">
+        <a id="btnExportJson" href="/v1/data?limit=50" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border border-slate-300 font-medium text-xs transition flex items-center gap-1">
           <span>⬇️ REST API</span>
         </a>
         <button onclick="switchGovTab('sql')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-2 py-1 rounded font-semibold text-xs transition flex items-center gap-1">
@@ -537,7 +537,7 @@ button:active {
         </table>
       </div>
       <div class="bg-slate-50 px-4 py-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
-        <div id="explorerPaginationInfo">Showing Page 1 of 407 (10,170 Total Records in In-Memory DuckDB)</div>
+        <div id="explorerPaginationInfo">Showing Page 1 of 470 (11,742 Total Records in In-Memory DuckDB)</div>
         <div class="flex items-center space-x-1" id="explorerPaginationControls">
           <!-- Dynamically populated -->
         </div>
@@ -820,7 +820,7 @@ button:active {
             <span class="text-xs text-emerald-700 font-semibold">• Sub-5ms Vectorized Execution</span>
           </div>
           <h3 class="text-lg font-bold text-govNavy-900 mt-1">Vectorized SQL Analytics Studio</h3>
-          <p class="text-xs text-slate-500">Execute fast, read-only SQL queries directly across the 10,170 master governance records and domain catalog tables (<code class="text-govNavy-900 font-mono">dataset</code>, <code class="text-govNavy-900 font-mono">tbl_pmkisan_national_dbt</code>, <code class="text-govNavy-900 font-mono">tbl_mgnrega_national_employment</code>, etc.).</p>
+          <p class="text-xs text-slate-500">Execute fast, read-only SQL queries directly across the 11,742 master governance records and domain catalog tables (<code class="text-govNavy-900 font-mono">dataset</code>, <code class="text-govNavy-900 font-mono">tbl_pmkisan_national_dbt</code>, <code class="text-govNavy-900 font-mono">tbl_mgnrega_national_employment</code>, etc.).</p>
         </div>
         <div class="flex items-center gap-2">
           <span id="sqlExecutionBadge" class="hidden px-2.5 py-1 rounded text-xs font-mono font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
@@ -3065,21 +3065,37 @@ function copyCleanJson() {
   showToast('Copied!', 'Clean normalized JSON copied to clipboard', 'success');
 }
 
-function executePlaygroundQuery() {
+async function executePlaygroundQuery() {
+  const inputEl = document.getElementById('apiEndpointPath');
   const out = document.getElementById('apiResponseOutput');
   const badge = document.getElementById('responseStatusBadge');
-  badge.innerHTML = '<span class="text-amber-600">Executing...</span>';
-  setTimeout(() => {
-    badge.className = 'bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded';
-    badge.innerText = '200 OK • 1.18 ms';
-    out.innerText = JSON.stringify({
-      meta: { gateway: "NIC-Bharat-API-Gateway/2.4", timestamp: new Date().toISOString(), records_count: 5, latency_ms: 1.18, lgd_directory_version: "2026.1" },
-      data: [
-        { lgd_district_code: 556, district_name_en: "Belagavi", state_code: "KA", status: "DISINFECTED" },
-        { lgd_district_code: 557, district_name_en: "Ballari", state_code: "KA", status: "DISINFECTED" }
-      ]
-    }, null, 2);
-  }, 250);
+  if (!inputEl || !out) return;
+
+  const path = inputEl.value.trim();
+  if (badge) badge.innerHTML = '<span class="text-amber-600">Executing live request...</span>';
+
+  try {
+    const t0 = performance.now();
+    const cleanPath = path.startsWith('/') ? path : `/v1/${path}`;
+    const resp = await fetch(cleanPath);
+    const latency = (performance.now() - t0).toFixed(2);
+    const text = await resp.text();
+    let formatted = text;
+    try {
+      formatted = JSON.stringify(JSON.parse(text), null, 2);
+    } catch(e) {}
+    if (badge) {
+      badge.className = resp.ok ? 'bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded' : 'bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded';
+      badge.innerText = `${resp.status} ${resp.statusText || 'OK'} • ${latency} ms`;
+    }
+    out.innerText = formatted;
+  } catch (err) {
+    if (badge) {
+      badge.className = 'bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded';
+      badge.innerText = 'Network Error';
+    }
+    out.innerText = `// Live Query Error: ${err.message}`;
+  }
 }
 
 function syncPlaygroundPath() {
@@ -3305,7 +3321,7 @@ document.addEventListener("DOMContentLoaded", () => {
 let currentExplorerPage = 1;
 let currentExplorerLimit = 25;
 let currentExplorerRecords = [];
-let totalExplorerRecords = 10170;
+let totalExplorerRecords = 11742;
 let totalExplorerPages = 407;
 let onlyLgdVerified = false;
 let currentCatalogDataset = 'master';
@@ -3324,13 +3340,13 @@ function updateExportLinks() {
   const jsonBtn = document.getElementById('btnExportJson');
 
   if (isMaster) {
-    if (csvBtn) csvBtn.href = '/v1/data?format=csv&limit=10170';
-    if (parquetBtn) parquetBtn.href = '/v1/data?format=parquet&limit=10170';
+    if (csvBtn) csvBtn.href = '/v1/data?format=csv&limit=11742';
+    if (parquetBtn) parquetBtn.href = '/v1/data?format=parquet&limit=11742';
     if (geojsonBtn) {
-      geojsonBtn.href = '/v1/geojson?limit=10170';
+      geojsonBtn.href = '/v1/geojson?limit=11742';
       geojsonBtn.classList.remove('opacity-50', 'pointer-events-none');
     }
-    if (jsonBtn) jsonBtn.href = '/v1/data?limit=10170';
+    if (jsonBtn) jsonBtn.href = '/v1/data?limit=50';
   } else {
     if (csvBtn) csvBtn.href = `/v1/datasets/${currentCatalogDataset}/data?limit=5000`;
     if (parquetBtn) parquetBtn.href = `/v1/datasets/${currentCatalogDataset}/data?limit=5000`;
@@ -3385,7 +3401,7 @@ async function loadExplorerData(page = 1) {
     if (qVal) url += `&q=${encodeURIComponent(qVal)}`;
     if (stateVal && stateVal !== 'ALL') url += `&state=${encodeURIComponent(stateVal)}`;
     if (schemeVal && schemeVal !== 'ALL') url += `&sector=${encodeURIComponent(schemeVal)}`;
-    if (onlyLgdVerified) url += `&lgd_district__gte=1`;
+    if (onlyLgdVerified) url += `&lgd_district_code__gte=1`;
   }
 
   try {
@@ -3640,7 +3656,7 @@ function resetExplorerFilters() {
   const btn = document.getElementById('btn-filter-disinfected');
   if (btn) {
     btn.className = 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-semibold px-2 py-1 rounded flex items-center gap-1 transition';
-    document.getElementById('btn-filter-disinfected-label').innerText = '83.5% LGD Verified (Safe Matching)';
+    document.getElementById('btn-filter-disinfected-label').innerText = '100% LGD Match (782 Districts)';
   }
   loadExplorerData(1);
 }
@@ -3651,10 +3667,10 @@ function toggleOnlyDisinfected() {
   const label = document.getElementById('btn-filter-disinfected-label');
   if (onlyLgdVerified) {
     btn.className = 'bg-emerald-600 text-white border border-emerald-700 text-[11px] font-semibold px-2 py-1 rounded flex items-center gap-1 transition shadow-xs';
-    if (label) label.innerText = 'Showing Verified LGD Only (2,298)';
+    if (label) label.innerText = 'Showing Verified LGD Only (11,742)';
   } else {
     btn.className = 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-semibold px-2 py-1 rounded flex items-center gap-1 transition';
-    if (label) label.innerText = '83.5% LGD Verified (Safe Matching)';
+    if (label) label.innerText = '100% LGD Match (782 Districts)';
   }
   loadExplorerData(1);
 }
@@ -3667,7 +3683,7 @@ function openTestApiForRecord(idx) {
   const scheme = r['Governance Portfolio - National Flagship Scheme'] || 'Flagship Scheme';
 
   document.getElementById('modalApiTitle').innerText = `${scheme} (${dist}, ${state})`;
-  document.getElementById('modalApiEndpointInput').value = `http://localhost:8000/v1/data?district=${encodeURIComponent(dist)}`;
+  document.getElementById('modalApiEndpointInput').value = `${window.location.origin}/v1/data?district=${encodeURIComponent(dist)}`;
   document.getElementById('modalParamState').value = state;
   document.getElementById('modalApiResponseJson').innerText = JSON.stringify({
     status: "200_OK",
@@ -4188,11 +4204,29 @@ async function loadAuditAnomalies() {
     const dt = document.getElementById('auditDormantTotal');
     const bc = document.getElementById('auditLowBeneCount');
 
-    if (lc) lc.innerText = `${data.fiscal_leakages.count} Anomalies`;
-    if (lt) lt.innerText = `Total: ₹ ${(data.fiscal_leakages.total_amount_inr / 10000000).toFixed(2)} Cr`;
-    if (dc) dc.innerText = `${data.dormant_funds.count} Dormant`;
-    if (dt) dt.innerText = `Idle: ₹ ${(data.dormant_funds.total_unutilized_inr / 10000000).toFixed(2)} Cr`;
-    if (bc) bc.innerText = `${data.low_beneficiary_outliers.count} Outliers`;
+    const leakCount = (data.fiscal_leakages && data.fiscal_leakages.count !== undefined)
+      ? data.fiscal_leakages.count
+      : (data.summary ? data.summary.fiscal_leakage_count : 0);
+    const leakTotal = (data.fiscal_leakages && data.fiscal_leakages.total_amount_inr !== undefined)
+      ? data.fiscal_leakages.total_amount_inr
+      : (data.summary ? data.summary.total_leakage_inr : 0);
+
+    const dormCount = (data.dormant_funds && data.dormant_funds.count !== undefined)
+      ? data.dormant_funds.count
+      : (data.summary ? data.summary.dormant_funds_count : 0);
+    const dormTotal = (data.dormant_funds && data.dormant_funds.total_unutilized_inr !== undefined)
+      ? data.dormant_funds.total_unutilized_inr
+      : (data.summary ? data.summary.total_dormant_inr : 0);
+
+    const lowBeneCount = (data.low_beneficiary_outliers && data.low_beneficiary_outliers.count !== undefined)
+      ? data.low_beneficiary_outliers.count
+      : 0;
+
+    if (lc) lc.innerText = `${leakCount} Anomalies`;
+    if (lt) lt.innerText = `Total: ₹ ${(leakTotal / 10000000).toFixed(2)} Cr`;
+    if (dc) dc.innerText = `${dormCount} Dormant`;
+    if (dt) dt.innerText = `Idle: ₹ ${(dormTotal / 10000000).toFixed(2)} Cr`;
+    if (bc) bc.innerText = `${lowBeneCount} Outliers`;
 
     allAuditAnomalies = data.anomalies || [];
     renderAuditTable(allAuditAnomalies);
@@ -4312,8 +4346,7 @@ function exportAuditCsv() {
     `"${(a.finding || '').replace(/"/g, '""')}"`,
   ]);
 
-  const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('
-');
+  const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -4389,8 +4422,8 @@ function drawCorrelatorScatter(points, xLabel, yLabel, r) {
   }
 
   const pad = 50;
-  const xs = points.map(p => p.x);
-  const ys = points.map(p => p.y);
+  const xs = points.map(p => (p.x !== undefined ? p.x : p.x_value));
+  const ys = points.map(p => (p.y !== undefined ? p.y : p.y_value));
   const minX = Math.min(...xs), maxX = Math.max(...xs) || 1;
   const minY = Math.min(...ys), maxY = Math.max(...ys) || 1;
 
@@ -4469,7 +4502,7 @@ async function loadWebhooksView() {
     listEl.innerHTML = subs.map(s => `
       <div class="p-2.5 rounded bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
         <div class="overflow-hidden">
-          <div class="font-mono font-bold text-govNavy-900 truncate max-w-xs">${escapeHtml(s.target_url)}</div>
+          <div class="font-mono font-bold text-govNavy-900 truncate max-w-xs">${escapeHtml(s.target_url || s.url)}</div>
           <div class="text-[10px] text-slate-500">Events: <span class="bg-amber-100 text-amber-800 px-1 py-0.2 rounded font-mono">${escapeHtml(s.events.join(', '))}</span></div>
         </div>
         <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Active</span>

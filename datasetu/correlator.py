@@ -99,12 +99,16 @@ class DatasetCorrelatorEngine:
 
         data_points = []
         for r in rows[:limit]:
+            xv = round(float(r[3]), 2)
+            yv = round(float(r[4]), 2)
             data_points.append({
                 "district": str(r[0]),
                 "state": str(r[1]),
                 "lgd_code": r[2],
-                "x_value": round(float(r[3]), 2),
-                "y_value": round(float(r[4]), 2),
+                "x_value": xv,
+                "y_value": yv,
+                "x": xv,
+                "y": yv,
             })
 
         duration_ms = (time.perf_counter() - t_start) * 1000
@@ -117,11 +121,14 @@ class DatasetCorrelatorEngine:
             "metric_y": val_col_y,
             "state_filter": state or "All-India",
             "matched_districts_count": n,
+            "sample_size_districts": n,
             "pearson_r": round(r_val, 4),
             "correlation_strength": narrative["strength"],
             "correlation_direction": narrative["direction"],
+            "direction": narrative["direction"],
             "policy_insight": narrative["insight"],
             "data_points": data_points,
+            "scatter_points": data_points,
             "latency_ms": round(duration_ms, 2),
         }
 

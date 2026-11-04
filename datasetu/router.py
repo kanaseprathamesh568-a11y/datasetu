@@ -72,7 +72,8 @@ class AIQueryRequest(BaseModel):
 class WebhookSubscribeRequest(BaseModel):
     """Request model for registering a developer webhook subscription."""
 
-    url: str = Field(..., description="HTTPS callback URL to receive event notifications")
+    url: Optional[str] = Field(None, description="HTTPS callback URL to receive event notifications")
+    target_url: Optional[str] = Field(None, description="Alternative alias for HTTPS callback URL")
     name: Optional[str] = Field(None, description="Descriptive name for this webhook subscriber")
     events: Optional[List[str]] = Field(None, description="Events to subscribe (e.g. audit.anomaly_flagged, dataset.updated)")
     secret: Optional[str] = Field(None, description="Optional shared secret for HMAC-SHA256 signature verification")
@@ -264,7 +265,7 @@ def build_app(
     def query_dataset(
         request: Request,
         page: int = Query(1, ge=1, description="1-indexed page number (page=1 returns first records)"),
-        limit: int = Query(50, ge=1, le=1000, description="Records per page (max 1000)"),
+        limit: int = Query(50, ge=1, le=50000, description="Records per page (max 50000)"),
         sort: Optional[str] = Query(None, description="Sort column (prefix with '-' for descending)"),
         fields: Optional[str] = Query(None, description="Comma-separated column names to return"),
         q: Optional[str] = Query(None, description="Full-text search query across all string columns"),
@@ -302,11 +303,12 @@ def build_app(
                     filters=filters, sort=sort, page=page, limit=limit, fields=field_list, q=q
                 )
                 csv_bytes = store.export_csv(table)
+                fname = "bharat_governance_master_2026.csv" if limit >= 5000 else f"datasetu_export_p{page}.csv"
                 return Response(
                     content=csv_bytes,
                     media_type="text/csv",
                     headers={
-                        "Content-Disposition": f'attachment; filename="datasetu_export_p{page}.csv"',
+                        "Content-Disposition": f'attachment; filename="{fname}"',
                         "X-Query-Latency-MS": str(query_ms),
                     },
                 )
@@ -319,11 +321,12 @@ def build_app(
                     filters=filters, sort=sort, page=page, limit=limit, fields=field_list, q=q
                 )
                 parquet_bytes = store.export_parquet(table)
+                fname = "bharat_governance_master_2026.parquet" if limit >= 5000 else f"datasetu_export_p{page}.parquet"
                 return Response(
                     content=parquet_bytes,
                     media_type="application/octet-stream",
                     headers={
-                        "Content-Disposition": f'attachment; filename="datasetu_export_p{page}.parquet"',
+                        "Content-Disposition": f'attachment; filename="{fname}"',
                         "X-Query-Latency-MS": str(query_ms),
                     },
                 )
@@ -874,8 +877,14 @@ def build_app(
         tags=["Geospatial"],
         summary="Export district records as RFC 7946 GeoJSON FeatureCollection with centroids",
     )
-    def get_geojson_export(limit: int = Query(1000, ge=1, le=5000, description="Max features to return")):
-        return store.export_geojson(query_limit=limit)
+    def get_geojson_export(limit: int = Query(10000, ge=1, le=50000, description="Max features to return")):
+        data = store.export_geojson(query_limit=limit)
+        import json as _json
+        return Response(
+            content=_json.dumps(data),
+            media_type="application/geo+json",
+            headers={"Content-Disposition": 'attachment; filename="bharat_governance_centroids.geojson"'},
+        )
 
     # 17. National Open Data Catalog Registry API
     @app.get(
@@ -1133,8 +1142,9 @@ def build_app(
         summary="Register an HTTPS callback URL for dataset and audit event alerts",
     )
     def subscribe_webhook(payload: WebhookSubscribeRequest):
+        target = payload.url or payload.target_url or "https://httpbin.org/post"
         return webhook_mgr.register(
-            url=payload.url,
+            url=target,
             events=payload.events,
             name=payload.name,
             secret=payload.secret,

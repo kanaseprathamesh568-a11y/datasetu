@@ -250,6 +250,9 @@ class DatasetStore:
 
         # 4. Standard public governance semantic aliases
         semantic_aliases: dict[str, list[str]] = {
+            "lgd_state": ["lgd_state_code", "lgd state code"],
+            "lgd_district": ["lgd_district_code", "lgd district code"],
+            "lgd_name": ["lgd_district_name", "lgd canonical name", "lgd_canonical_name"],
             "state": ["state name", "state", "st name", "state_name"],
             "district": ["district name", "district", "dist name", "district_name"],
             "sector": ["sector category", "sector", "sector_name", "department"],
@@ -259,13 +262,20 @@ class DatasetStore:
             "expenditure": ["actual expenditure incurred", "total expenditure", "expenditure", "spend"],
             "beneficiaries": ["beneficiaries reached", "beneficiaries", "impact", "target reached"],
             "status": ["performance lifecycle status", "utilization status", "lifecycle status", "status"],
-            "lgd_state": ["lgd_state_code", "lgd state code"],
-            "lgd_district": ["lgd_district_code", "lgd district code"],
-            "lgd_name": ["lgd_district_name", "lgd canonical name", "lgd_canonical_name"],
         }
 
+        # 4a. Exact concept match
+        if cleaned_lower in semantic_aliases:
+            for target in semantic_aliases[cleaned_lower]:
+                for col in self._columns:
+                    if target in col.lower():
+                        return col
+
+        # 4b. Trigger match (guarding against lgd colliding with generic state/district)
         for concept, triggers in semantic_aliases.items():
-            if cleaned_lower == concept or any(trig in cleaned_lower for trig in triggers):
+            if "lgd" in cleaned_lower and not concept.startswith("lgd"):
+                continue
+            if any(trig in cleaned_lower for trig in triggers):
                 for target in triggers:
                     for col in self._columns:
                         c_lower = col.lower()
@@ -296,7 +306,7 @@ class DatasetStore:
             filters: Exact or comparator column filters (e.g. {'state': 'Karnataka', 'expenditure__gte': 1000})
             sort: Column name to sort by, optionally prefixed with '-' for descending
             page: 1-indexed page number (page=1 returns the first slice)
-            limit: Number of records per page (max 1000)
+            limit: Number of records per page (max 50000)
             fields: Optional comma-separated list of columns to select
             q: General full-text search string applied across text columns
         """
@@ -304,7 +314,7 @@ class DatasetStore:
 
         # Enforce bounds
         page = max(1, page)
-        limit = min(max(1, limit), 1000)
+        limit = min(max(1, limit), 50000)
         offset = (page - 1) * limit
 
         where_clauses: list[str] = []
@@ -345,13 +355,24 @@ class DatasetStore:
                     raise ValueError(f"Unknown column filter '{col_name}'. Valid columns: {self._columns}")
 
                 safe_col = _safe_sql_ident(resolved_col)
-                if op == "=" and isinstance(val, str):
+                col_type = self._column_types.get(resolved_col, "VARCHAR").lower()
+                is_num_col = any(t in col_type for t in ["int", "double", "float", "decimal", "numeric", "real"])
+
+                if op == "=" and isinstance(val, str) and not is_num_col:
                     # Case-insensitive equality for text queries
                     where_clauses.append(f"LOWER(CAST({safe_col} AS VARCHAR)) = LOWER(?)")
                     params.append(str(val))
+                elif is_num_col:
+                    try:
+                        num_val = float(val) if "." in str(val) else int(val)
+                        where_clauses.append(f"{safe_col} {op} ?")
+                        params.append(num_val)
+                    except (ValueError, TypeError):
+                        where_clauses.append(f"{safe_col} {op} ?")
+                        params.append(val)
                 else:
                     where_clauses.append(f"{safe_col} {op} ?")
-                    params.append(val)
+                    params.append(str(val))
 
         # Global 'q' search across string columns (bounded to 256 chars for security)
         if q and q.strip():
@@ -411,7 +432,7 @@ class DatasetStore:
         """Returns paginated query results as an Arrow table for streaming zero-copy exports."""
         start_time = time.perf_counter()
         page = max(1, page)
-        limit = min(max(1, limit), 5000)
+        limit = min(max(1, limit), 50000)
         offset = (page - 1) * limit
 
         where_clauses: list[str] = []
@@ -448,12 +469,23 @@ class DatasetStore:
                     raise ValueError(f"Unknown column filter '{col_name}'. Valid columns: {self._columns}")
 
                 safe_col = _safe_sql_ident(resolved_col)
-                if op == "=" and isinstance(val, str):
+                col_type = self._column_types.get(resolved_col, "VARCHAR").lower()
+                is_num_col = any(t in col_type for t in ["int", "double", "float", "decimal", "numeric", "real"])
+
+                if op == "=" and isinstance(val, str) and not is_num_col:
                     where_clauses.append(f"LOWER(CAST({safe_col} AS VARCHAR)) = LOWER(?)")
                     params.append(str(val))
+                elif is_num_col:
+                    try:
+                        num_val = float(val) if "." in str(val) else int(val)
+                        where_clauses.append(f"{safe_col} {op} ?")
+                        params.append(num_val)
+                    except (ValueError, TypeError):
+                        where_clauses.append(f"{safe_col} {op} ?")
+                        params.append(val)
                 else:
                     where_clauses.append(f"{safe_col} {op} ?")
-                    params.append(val)
+                    params.append(str(val))
 
         if q and q.strip():
             q_clean = q.strip()[:256]

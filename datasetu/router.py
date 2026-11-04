@@ -545,13 +545,20 @@ def build_app(
     def trigger_cdc_update():
         prev_version = store.version
         res = store.conn.execute(f"SELECT * FROM {store.table_name}")
-        if hasattr(res, "fetch_arrow_table"):
+        if hasattr(res, "to_arrow_table"):
+            active_arrow = res.to_arrow_table()
+        elif hasattr(res, "fetch_arrow_table"):
             active_arrow = res.fetch_arrow_table()
         elif hasattr(res, "arrow"):
             arr = res.arrow()
             active_arrow = arr.read_all() if hasattr(arr, "read_all") else arr
-        else:
+        elif hasattr(store.conn, "to_arrow_table"):
+            active_arrow = store.conn.to_arrow_table()
+        elif hasattr(store.conn, "fetch_arrow_table"):
             active_arrow = store.conn.fetch_arrow_table()
+        else:
+            batches = res.fetch_record_batch() if hasattr(res, "fetch_record_batch") else []
+            active_arrow = pa.Table.from_batches(batches) if batches else pa.Table.from_pydict({})
         t0 = time.perf_counter()
         new_version = store.swap(active_arrow, new_report=store.report)
         swap_ms = round((time.perf_counter() - t0) * 1000.0, 2)

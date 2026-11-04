@@ -363,13 +363,20 @@ def sniff(source: Union[str, Path]) -> SniffResult:
         safe_path = str(cleaned_path).replace("'", "''")
         query_sql = f"SELECT * FROM read_csv('{safe_path}', all_varchar=true, auto_detect=true)"
         rel = con.query(query_sql) if hasattr(con, "query") else con.execute(query_sql)
-        if hasattr(rel, "fetch_arrow_table"):
+        if hasattr(rel, "to_arrow_table"):
+            tbl = rel.to_arrow_table()
+        elif hasattr(rel, "fetch_arrow_table"):
             tbl = rel.fetch_arrow_table()
         elif hasattr(rel, "arrow"):
             arr = rel.arrow()
             tbl = arr.read_all() if hasattr(arr, "read_all") else arr
-        else:
+        elif hasattr(con, "to_arrow_table"):
+            tbl = con.to_arrow_table()
+        elif hasattr(con, "fetch_arrow_table"):
             tbl = con.fetch_arrow_table()
+        else:
+            batches = rel.fetch_record_batch() if hasattr(rel, "fetch_record_batch") else []
+            tbl = pa.Table.from_batches(batches) if batches else pa.Table.from_pydict({})
     finally:
         con.close()
 

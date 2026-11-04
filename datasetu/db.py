@@ -522,13 +522,20 @@ class DatasetStore:
             LIMIT {limit} OFFSET {offset}
         """
         res = self.conn.execute(data_sql, params)
-        if hasattr(res, "fetch_arrow_table"):
+        if hasattr(res, "to_arrow_table"):
+            table = res.to_arrow_table()
+        elif hasattr(res, "fetch_arrow_table"):
             table = res.fetch_arrow_table()
         elif hasattr(res, "arrow"):
             arr = res.arrow()
             table = arr.read_all() if hasattr(arr, "read_all") else arr
-        else:
+        elif hasattr(self.conn, "to_arrow_table"):
+            table = self.conn.to_arrow_table()
+        elif hasattr(self.conn, "fetch_arrow_table"):
             table = self.conn.fetch_arrow_table()
+        else:
+            batches = res.fetch_record_batch() if hasattr(res, "fetch_record_batch") else []
+            table = pa.Table.from_batches(batches) if batches else pa.Table.from_pydict({})
         query_ms = round((time.perf_counter() - start_time) * 1000, 2)
         return table, total_rows, query_ms
 

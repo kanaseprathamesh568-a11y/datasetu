@@ -57,6 +57,11 @@ class DatasetStore:
         self._changelog: list[dict[str, Any]] = []
         self.catalog: dict[str, dict[str, Any]] = {}
 
+    @property
+    def columns(self) -> list[str]:
+        """Returns the list of active column names in the loaded table."""
+        return list(self._columns)
+
     def load(self, table: pa.Table, report: Any = None, version: str = "1.0.0") -> None:
         """Initializes or reloads the active dataset from a PyArrow Table."""
         self.version = version
@@ -560,16 +565,19 @@ class DatasetStore:
         # Optional group_by aggregation (e.g. group_by=state&metric=sum:expenditure)
         grouped_result = None
         if group_by:
-            if group_by not in self._columns:
+            resolved_group = self.resolve_column(group_by)
+            if not resolved_group:
                 raise ValueError(f"Unknown group_by column '{group_by}'")
+            group_by = resolved_group
             if metric and ":" in metric:
                 agg_func, agg_col = metric.split(":", 1)
                 agg_func = agg_func.upper()
                 if agg_func not in ["SUM", "AVG", "MIN", "MAX", "COUNT"]:
                     raise ValueError(f"Unsupported aggregation '{agg_func}'")
-                if agg_col not in self._columns:
+                resolved_metric = self.resolve_column(agg_col)
+                if not resolved_metric:
                     raise ValueError(f"Unknown metric column '{agg_col}'")
-                agg_expr = f'{agg_func}("{agg_col}")'
+                agg_expr = f'{agg_func}("{resolved_metric}")'
             else:
                 agg_expr = "COUNT(*)"
 

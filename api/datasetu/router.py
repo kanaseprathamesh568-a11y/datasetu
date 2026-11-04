@@ -39,16 +39,20 @@ from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel, Field, create_model
 
 from datasetu.ai import AIQueryEngine
+from datasetu.audit import CivicAuditEngine
 from datasetu.catalog_index import UniversalCatalogIndex
+from datasetu.correlator import DatasetCorrelatorEngine
 from datasetu.db import DatasetStore, _safe_sql_ident
 from datasetu.federation import OpenDataFederationEngine
 from datasetu.harvester import FutureSyncEngine
+from datasetu.sdk_generator import generate_go_sdk, generate_typescript_sdk
 from datasetu.security import (
     RateLimitMiddleware,
     RequestSizeLimitMiddleware,
     SecurityHeadersMiddleware,
     verify_safe_file_path,
 )
+from datasetu.webhooks import WebhookManager
 
 
 class SQLQueryRequest(BaseModel):
@@ -62,6 +66,25 @@ class AIQueryRequest(BaseModel):
 
     question: str = Field(..., description="Natural language question about India's public governance data")
     max_rows: Optional[int] = Field(20, description="Maximum number of tabular records to return (1-500)")
+    language: Optional[str] = Field("en", description="Target output language (en, hi, pa, mr, ta, te, bn)")
+
+
+class WebhookSubscribeRequest(BaseModel):
+    """Request model for registering a developer webhook subscription."""
+
+    url: str = Field(..., description="HTTPS callback URL to receive event notifications")
+    name: Optional[str] = Field(None, description="Descriptive name for this webhook subscriber")
+    events: Optional[List[str]] = Field(None, description="Events to subscribe (e.g. audit.anomaly_flagged, dataset.updated)")
+    secret: Optional[str] = Field(None, description="Optional shared secret for HMAC-SHA256 signature verification")
+
+
+class WebhookSimulateRequest(BaseModel):
+    """Request model for simulating an event dispatch to a webhook."""
+
+    target_url: Optional[str] = Field("https://httpbin.org/post", description="Target webhook URL to test")
+    event_type: Optional[str] = Field("audit.anomaly_flagged", description="Event type to simulate")
+    secret: Optional[str] = Field("whsec_demo_secret", description="HMAC secret to sign the request")
+    district: Optional[str] = Field(None, description="Optional district name for payload simulation")
 
 
 class FutureSubscribeRequest(BaseModel):
@@ -920,7 +943,7 @@ def build_app(
         if not payload.question or not payload.question.strip():
             raise HTTPException(status_code=400, detail="Query prompt cannot be empty.")
         max_rows = payload.max_rows or 20
-        res = ai_engine.execute_and_synthesize(payload.question.strip(), max_rows=max_rows)
+        res = ai_engine.execute_and_synthesize(payload.question.strip(), max_rows=max_rows, language=payload.language)
         return res
 
     catalog_idx = UniversalCatalogIndex()
@@ -1017,6 +1040,138 @@ def build_app(
             return await federation_engine.compile_remote_dataset_jit(url=payload.url, title=payload.title)
         except Exception as err:
             raise HTTPException(status_code=400, detail=str(err))
+
+    # 20. Civic Anomaly & Forensic Audit Engine
+    audit_engine = CivicAuditEngine(store)
+
+    @app.get(
+        "/v1/audit/anomalies",
+        tags=["Civic Forensic Audit"],
+        summary="Run forensic audit across government datasets to detect fiscal leakage and dormant funds",
+    )
+    def get_audit_anomalies(
+        state: Optional[str] = Query(None, description="Filter audit anomalies by State/UT"),
+        sector: Optional[str] = Query(None, description="Filter audit anomalies by Sector"),
+        dataset_id: Optional[str] = Query(None, description="Specific dataset/table to audit"),
+        limit: int = Query(50, ge=1, le=500, description="Max anomalies to return"),
+    ):
+        tbl = None
+        if dataset_id:
+            clean = dataset_id.lower().replace("-", "_").replace(" ", "_")
+            if clean in store.catalog:
+                tbl = store.catalog[clean]["table_name"]
+        return audit_engine.run_audit(table_name=tbl, state_filter=state, sector_filter=sector, limit=limit)
+
+    # 21. Cross-Ministerial Dataset Correlator (Multi-Table LGD Joins)
+    correlator_engine = DatasetCorrelatorEngine(store)
+
+    @app.get(
+        "/v1/correlate",
+        tags=["Cross-Ministerial Correlator"],
+        summary="Join two distinct ministerial datasets on LGD statutory district codes and compute Pearson correlation",
+    )
+    def correlate_datasets(
+        dataset_x: str = Query("master", description="First dataset identifier (e.g. master, jal_jeevan_tap_water)"),
+        metric_x: str = Query("expenditure", description="Metric column for X axis"),
+        dataset_y: str = Query("pmkisan_national_dbt", description="Second dataset identifier"),
+        metric_y: str = Query("allocation", description="Metric column for Y axis"),
+        state: Optional[str] = Query(None, description="Optional State filter"),
+        limit: int = Query(200, ge=1, le=1000, description="Max data points to return"),
+    ):
+        return correlator_engine.correlate(
+            dataset_x=dataset_x,
+            metric_x=metric_x,
+            dataset_y=dataset_y,
+            metric_y=metric_y,
+            state=state,
+            limit=limit,
+        )
+
+    # 22. Polyglot Client SDK Generator (TypeScript & Go)
+    @app.get(
+        "/v1/sdk/typescript",
+        tags=["Developer SDKs"],
+        summary="Download standalone typed TypeScript / Node.js client SDK",
+    )
+    def download_typescript_sdk():
+        spec = app.openapi()
+        ts_code = generate_typescript_sdk(spec)
+        return Response(
+            content=ts_code,
+            media_type="application/typescript",
+            headers={"Content-Disposition": 'attachment; filename="dataSetuClient.ts"'},
+        )
+
+    @app.get(
+        "/v1/sdk/go",
+        tags=["Developer SDKs"],
+        summary="Download standalone idiomatic Go client SDK",
+    )
+    def download_go_sdk():
+        spec = app.openapi()
+        go_code = generate_go_sdk(spec)
+        return Response(
+            content=go_code,
+            media_type="text/plain",
+            headers={"Content-Disposition": 'attachment; filename="client.go"'},
+        )
+
+    # 23. Event-Driven Webhooks & Notification Simulator
+    webhook_mgr = WebhookManager()
+
+    @app.get(
+        "/v1/webhooks/subscriptions",
+        tags=["Developer Webhooks"],
+        summary="List active developer webhook subscriptions",
+    )
+    def list_webhook_subscriptions():
+        return {"subscriptions": webhook_mgr.list_subscriptions()}
+
+    @app.post(
+        "/v1/webhooks/subscribe",
+        tags=["Developer Webhooks"],
+        summary="Register an HTTPS callback URL for dataset and audit event alerts",
+    )
+    def subscribe_webhook(payload: WebhookSubscribeRequest):
+        return webhook_mgr.register(
+            url=payload.url,
+            events=payload.events,
+            name=payload.name,
+            secret=payload.secret,
+        )
+
+    @app.post(
+        "/v1/webhooks/simulate",
+        tags=["Developer Webhooks"],
+        summary="Dispatch a signed HMAC-SHA256 test event to verify receiver compatibility",
+    )
+    async def simulate_webhook_event(payload: WebhookSimulateRequest):
+        target = payload.target_url or "https://httpbin.org/post"
+        custom = None
+        if payload.district:
+            custom = {
+                "event": payload.event_type or "audit.anomaly_flagged",
+                "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "source": "DataSetu Civic DPI Engine",
+                "data": {
+                    "dataset_id": "bharat_governance_master_2026",
+                    "location": payload.district,
+                    "lifecycle_status": "Audited & Verified",
+                    "notice": f"Simulated statutory event notification for {payload.district}.",
+                },
+            }
+        res = await webhook_mgr.simulate_dispatch(
+            target_url=target,
+            event_type=payload.event_type or "audit.anomaly_flagged",
+            custom_payload=custom,
+            secret=payload.secret or "whsec_demo_secret",
+        )
+        res["event"] = res.get("event_type")
+        res["delivery_id"] = f"del_{int(time.time() * 1000)}"
+        res["signature"] = res.get("signature_header")
+        res["payload"] = res.get("payload_preview")
+        res["simulated_delivery_ms"] = res.get("latency_ms")
+        return res
 
     return app
 

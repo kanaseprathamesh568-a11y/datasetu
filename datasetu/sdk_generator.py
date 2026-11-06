@@ -248,6 +248,38 @@ def _map_openapi_type(prop_info: Dict[str, Any]) -> str:
         return "Optional[str]"
 
 
+def generate_python_sdk(openapi: Dict[str, Any]) -> str:
+    """Generate a typed Python SDK client code string from an OpenAPI specification dictionary."""
+    info = openapi.get("info", {})
+    title = info.get("title", "DataSetu Engine API")
+    version = info.get("version", "1.0.0")
+
+    schemas = openapi.get("components", {}).get("schemas", {})
+    record_schema = schemas.get("DatasetRecord", {})
+    properties = record_schema.get("properties", {})
+
+    fields: List[Dict[str, str]] = []
+    for idx, (raw_name, prop_info) in enumerate(properties.items()):
+        safe_name = re.sub(r"[^\w]", "_", raw_name).strip("_").lower()
+        if not safe_name or safe_name[0].isdigit():
+            safe_name = f"col_{idx}_{safe_name}"
+
+        py_type = _map_openapi_type(prop_info)
+        fields.append({
+            "raw_name": raw_name,
+            "safe_name": safe_name,
+            "py_type": py_type,
+        })
+
+    env = jinja2.Environment(autoescape=False, trim_blocks=True, lstrip_blocks=True)
+    template = env.from_string(_SDK_TEMPLATE)
+    return template.render(
+        title=title,
+        version=version,
+        fields=fields,
+    ).strip() + "\n"
+
+
 def generate_sdk(openapi: Dict[str, Any], out_path: Union[str, Path]) -> Path:
     """Generate a typed Python SDK client from an OpenAPI specification dictionary.
 

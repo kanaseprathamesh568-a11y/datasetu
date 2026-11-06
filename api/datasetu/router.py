@@ -38,6 +38,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel, Field, create_model
 
+from starlette.middleware.gzip import GZipMiddleware
+
 from datasetu.ai import AIQueryEngine
 from datasetu.audit import CivicAuditEngine
 from datasetu.catalog_index import UniversalCatalogIndex
@@ -45,8 +47,9 @@ from datasetu.correlator import DatasetCorrelatorEngine
 from datasetu.db import DatasetStore, _safe_sql_ident
 from datasetu.federation import OpenDataFederationEngine
 from datasetu.harvester import FutureSyncEngine
-from datasetu.sdk_generator import generate_go_sdk, generate_typescript_sdk
+from datasetu.sdk_generator import generate_go_sdk, generate_python_sdk, generate_typescript_sdk
 from datasetu.security import (
+    HeadRequestMiddleware,
     RateLimitMiddleware,
     RequestSizeLimitMiddleware,
     SecurityHeadersMiddleware,
@@ -64,9 +67,14 @@ class SQLQueryRequest(BaseModel):
 class AIQueryRequest(BaseModel):
     """Request model for plain language AI questions synthesized via in-memory LLM."""
 
-    question: str = Field(..., description="Natural language question about India's public governance data")
+    question: Optional[str] = Field(None, description="Natural language question about India's public governance data")
+    prompt: Optional[str] = Field(None, description="Alternative alias for question")
+    query: Optional[str] = Field(None, description="Alternative alias for question")
     max_rows: Optional[int] = Field(20, description="Maximum number of tabular records to return (1-500)")
     language: Optional[str] = Field("en", description="Target output language (en, hi, pa, mr, ta, te, bn)")
+
+    def get_question(self) -> str:
+        return (self.question or self.prompt or self.query or "").strip()
 
 
 class WebhookSubscribeRequest(BaseModel):
@@ -154,9 +162,11 @@ def build_app(
         )
 
     # 1. Defense-in-depth Security & Hardening Middlewares
+    app.add_middleware(HeadRequestMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(RateLimitMiddleware, max_requests=300, window_seconds=60)
     app.add_middleware(RequestSizeLimitMiddleware, max_bytes=10 * 1024 * 1024)
+    app.add_middleware(GZipMiddleware, minimum_size=1000)
 
     # 2. CORS configuration for local developer tools and offline web interfaces
     app.add_middleware(
@@ -884,13 +894,34 @@ def build_app(
         tags=["Geospatial"],
         summary="Export district records as RFC 7946 GeoJSON FeatureCollection with centroids",
     )
-    def get_geojson_export(limit: int = Query(10000, ge=1, le=50000, description="Max features to return")):
-        data = store.export_geojson(query_limit=limit)
+    def get_geojson_export(
+        request: Request,
+        limit: int = Query(11742, ge=1, le=50000, description="Max features to return"),
+        q: Optional[str] = Query(None, description="Full-text search query across all string columns"),
+    ):
+        reserved_params = {"limit", "q"}
+        filters: Dict[str, Any] = {}
+        for param_key, param_val in request.query_params.items():
+            if param_key not in reserved_params and param_val != "":
+                if param_key.endswith("__gte") or param_key.endswith("__lte"):
+                    try:
+                        parsed_val = float(param_val) if "." in param_val else int(param_val)
+                        filters[param_key] = parsed_val
+                    except ValueError:
+                        filters[param_key] = param_val
+                else:
+                    filters[param_key] = param_val
+
+        data = store.export_geojson(query_limit=limit, filters=filters, q=q)
         import json as _json
+        json_bytes = _json.dumps(data, separators=(",", ":")).encode("utf-8")
         return Response(
-            content=_json.dumps(data),
-            media_type="application/geo+json",
-            headers={"Content-Disposition": 'attachment; filename="bharat_governance_centroids.geojson"'},
+            content=json_bytes,
+            media_type="application/geo+json; charset=utf-8",
+            headers={
+                "Content-Disposition": 'attachment; filename="bharat_governance_centroids.geojson"',
+                "Content-Length": str(len(json_bytes)),
+            },
         )
 
     # 17. National Open Data Catalog Registry API
@@ -956,10 +987,11 @@ def build_app(
     def ask_ai(payload: AIQueryRequest):
         """Processes plain English/Hindi queries against 28k+ statutory government records,
         translating to vectorized DuckDB SQL and synthesizing executive LLM takeaways."""
-        if not payload.question or not payload.question.strip():
+        q_text = payload.get_question()
+        if not q_text:
             raise HTTPException(status_code=400, detail="Query prompt cannot be empty.")
         max_rows = payload.max_rows or 20
-        res = ai_engine.execute_and_synthesize(payload.question.strip(), max_rows=max_rows, language=payload.language)
+        res = ai_engine.execute_and_synthesize(q_text, max_rows=max_rows, language=payload.language)
         return res
 
     catalog_idx = UniversalCatalogIndex()
@@ -1103,7 +1135,21 @@ def build_app(
             limit=limit,
         )
 
-    # 22. Polyglot Client SDK Generator (TypeScript & Go)
+    # 22. Polyglot Client SDK Generator (Python, TypeScript & Go)
+    @app.get(
+        "/v1/sdk/python",
+        tags=["Developer SDKs"],
+        summary="Download standalone typed Python client SDK",
+    )
+    def download_python_sdk():
+        spec = app.openapi()
+        py_code = generate_python_sdk(spec)
+        return Response(
+            content=py_code,
+            media_type="text/x-python",
+            headers={"Content-Disposition": 'attachment; filename="datasetu_client.py"'},
+        )
+
     @app.get(
         "/v1/sdk/typescript",
         tags=["Developer SDKs"],

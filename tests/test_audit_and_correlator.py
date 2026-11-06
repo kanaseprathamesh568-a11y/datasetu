@@ -42,6 +42,31 @@ def test_cross_ministerial_correlator(client):
     assert len(data["data_points"]) > 0
 
 
+def test_python_sdk_download(client):
+    """Verify Python SDK generation endpoint."""
+    resp = client.get("/v1/sdk/python")
+    assert resp.status_code == 200
+    assert "class DatasetuClient" in resp.text
+    assert "import httpx" in resp.text
+    assert "def get_data" in resp.text
+    assert "datasetu_client.py" in resp.headers.get("content-disposition", "")
+
+
+def test_head_request_probes(client):
+    """Verify HEAD probes return 200 OK with correct headers and zero body."""
+    # 1. HEAD on /v1/data
+    resp = client.head("/v1/data?format=csv&limit=100")
+    assert resp.status_code == 200
+    assert "text/csv" in resp.headers.get("content-type", "")
+    assert len(resp.content) == 0
+
+    # 2. HEAD on /v1/geojson
+    resp_geo = client.head("/v1/geojson?limit=100")
+    assert resp_geo.status_code == 200
+    assert "application/geo+json" in resp_geo.headers.get("content-type", "")
+    assert len(resp_geo.content) == 0
+
+
 def test_typescript_sdk_download(client):
     """Verify TypeScript SDK generation endpoint."""
     resp = client.get("/v1/sdk/typescript")

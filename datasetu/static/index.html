@@ -434,7 +434,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
       </div>
       <div class="text-3xl font-extrabold text-govNavy-900 mt-1" id="kpi-inmemory-records">39,108</div>
       <p class="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
-        <span class="text-amber-700 font-bold">782 Districts</span> • 0.45 ms Query Latency
+        <span class="text-amber-700 font-bold">782 Districts</span> • <span id="kpi-latency-val">0.45</span> ms Query Latency
       </p>
     </div>
   </div>
@@ -2885,12 +2885,19 @@ function handleSearchInput() {
 }
 
 function selectSuggestion(name, state, scheme) {
-  document.getElementById('searchInput').value = name;
+  const sInput = document.getElementById('searchInput');
+  if (sInput) sInput.value = name;
   closeSearchSuggestions();
-  if (state !== 'ALL') document.getElementById('stateFilter').value = state;
-  if (scheme) document.getElementById('schemeFilter').value = scheme;
-  filterExplorerTable();
+  if (state && state !== 'ALL') {
+    const stEl = document.getElementById('stateFilter');
+    if (stEl) stEl.value = state;
+  }
+  if (scheme && scheme !== 'ALL') {
+    const scEl = document.getElementById('schemeFilter');
+    if (scEl) scEl.value = scheme;
+  }
   switchGovTab('explorer');
+  loadExplorerData(1);
 }
 
 function triggerHeroSearch() {
@@ -2916,13 +2923,26 @@ function applyTrendingFilter(query) {
 }
 
 function filterExplorerByHeroCategory(cat) {
-  if (cat === 'ALL') {
-    resetExplorerFilters();
-  } else {
-    const el = document.getElementById('schemeFilter');
-    if (el) el.value = cat;
-    loadExplorerData(1);
+  const catMap = {
+    'ALL': 'ALL',
+    'PMKISAN': 'Agriculture & Farmers Welfare',
+    'MGNREGA': 'Rural Development',
+    'HEALTH': 'Health & Family Welfare',
+    'DBT': 'Housing & Urban Affairs',
+    'LGD': 'ALL'
+  };
+  const targetSector = catMap[cat] || cat;
+  const el = document.getElementById('schemeFilter');
+  if (el) el.value = targetSector;
+  if (cat === 'LGD') {
+    onlyLgdVerified = true;
+    const btn = document.getElementById('btn-filter-disinfected');
+    const label = document.getElementById('btn-filter-disinfected-label');
+    if (btn) btn.className = 'h-9 px-3.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-700 text-xs font-semibold inline-flex items-center gap-2 transition-all duration-200 shadow-sm active:scale-95 cursor-pointer';
+    if (label) label.innerText = 'Showing Verified LGD Only (11,742)';
   }
+  switchGovTab('explorer');
+  loadExplorerData(1);
 }
 
 function toggleHeroCurlLiveConsole() {
@@ -3137,9 +3157,10 @@ function filterLgdTable() {
 }
 
 function quickFilterFromLgd(st) {
-  document.getElementById('stateFilter').value = st;
+  const stEl = document.getElementById('stateFilter');
+  if (stEl) stEl.value = st;
   switchGovTab('explorer');
-  filterExplorerTable();
+  loadExplorerData(1);
 }
 
 function runInlineValidator() {
@@ -3359,14 +3380,26 @@ function updateExportLinks() {
   const geojsonBtn = document.getElementById('btnExportGeoJson');
   const jsonBtn = document.getElementById('btnExportJson');
 
+  const stateVal = document.getElementById('stateFilter') ? document.getElementById('stateFilter').value : 'ALL';
+  const schemeVal = document.getElementById('schemeFilter') ? document.getElementById('schemeFilter').value : 'ALL';
+  const qVal = document.getElementById('searchInput') ? document.getElementById('searchInput').value.trim() : '';
+
+  let filterQuery = '';
   if (isMaster) {
-    if (csvBtn) csvBtn.href = '/v1/data?format=csv&limit=11742';
-    if (parquetBtn) parquetBtn.href = '/v1/data?format=parquet&limit=11742';
+    if (qVal) filterQuery += `&q=${encodeURIComponent(qVal)}`;
+    if (stateVal && stateVal !== 'ALL') filterQuery += `&state=${encodeURIComponent(stateVal)}`;
+    if (schemeVal && schemeVal !== 'ALL') filterQuery += `&sector=${encodeURIComponent(schemeVal)}`;
+    if (onlyLgdVerified) filterQuery += `&lgd_district_code__gte=1`;
+  }
+
+  if (isMaster) {
+    if (csvBtn) csvBtn.href = `/v1/data?format=csv&limit=11742${filterQuery}`;
+    if (parquetBtn) parquetBtn.href = `/v1/data?format=parquet&limit=11742${filterQuery}`;
     if (geojsonBtn) {
-      geojsonBtn.href = '/v1/geojson?limit=11742';
+      geojsonBtn.href = `/v1/geojson?limit=11742${filterQuery}`;
       geojsonBtn.classList.remove('opacity-50', 'pointer-events-none');
     }
-    if (jsonBtn) jsonBtn.href = '/v1/data?limit=50';
+    if (jsonBtn) jsonBtn.href = `/v1/data?limit=50${filterQuery}`;
   } else {
     if (csvBtn) csvBtn.href = `/v1/datasets/${currentCatalogDataset}/data?limit=5000`;
     if (parquetBtn) parquetBtn.href = `/v1/datasets/${currentCatalogDataset}/data?limit=5000`;
@@ -3403,6 +3436,7 @@ function formatNumber(num) {
 
 async function loadExplorerData(page = 1) {
   currentExplorerPage = page;
+  updateExportLinks();
   const tbody = document.getElementById('explorerTableBody');
   const countText = document.getElementById('recordCountText');
   const stateVal = document.getElementById('stateFilter') ? document.getElementById('stateFilter').value : 'ALL';
@@ -4778,7 +4812,7 @@ function speakAiSummary() {
     showToast('TTS Not Supported', 'Text-to-speech not supported in this browser.', 'warning');
     return;
   }
-  const summaryEl = document.getElementById('aiExecutiveSummary');
+  const summaryEl = document.getElementById('aiSummaryText');
   if (!summaryEl || !summaryEl.innerText) {
     showToast('No Summary', 'Execute an AI query first to synthesize summary.', 'warning');
     return;
@@ -5114,12 +5148,14 @@ function openCompiledDatasetInExplorer(datasetId, title) {
 }
 
 function openCompiledDatasetInSql(tableName) {
-  const editor = document.getElementById('sqlEditor');
+  const editor = document.getElementById('sqlQueryInput');
   if (editor) {
     editor.value = `SELECT * FROM ${tableName} LIMIT 50;`;
   }
   switchGovTab('sql');
-  runSqlQuery();
+  if (typeof runSqlStudio === 'function') {
+    runSqlStudio();
+  }
 }
 
 async function loadMasterCatalogUi(page = 1) {

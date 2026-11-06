@@ -706,9 +706,14 @@ class DatasetStore:
         except Exception as e:
             raise ValueError(f"SQL Execution Error: {str(e)}")
 
-    def export_geojson(self, query_limit: int = 1000) -> dict[str, Any]:
+    def export_geojson(
+        self,
+        query_limit: int = 1000,
+        filters: dict[str, Any] | None = None,
+        q: str | None = None,
+    ) -> dict[str, Any]:
         """Synthesizes standard RFC 7946 GeoJSON FeatureCollection with district centroids."""
-        res = self.query(limit=query_limit)
+        res = self.query(limit=query_limit, filters=filters, q=q)
 
         import json
         from pathlib import Path

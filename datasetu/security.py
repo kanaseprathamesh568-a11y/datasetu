@@ -51,17 +51,32 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # Content Security Policy (strict self, allows inline styling, Tailwind CDN, Google Fonts & assets)
         csp = (
-            "default-src 'self'; "
+            "default-src 'self' data: blob:; "
             "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com data:; "
-            "img-src 'self' data: https://lh3.googleusercontent.com https://*.googleusercontent.com https://images.unsplash.com; "
-            "connect-src 'self'; "
+            "img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.googleusercontent.com https://images.unsplash.com; "
+            "connect-src 'self' https: data: blob:; "
             "frame-ancestors 'self';"
         )
         response.headers["Content-Security-Policy"] = csp
 
         return response
+
+
+class HeadRequestMiddleware(BaseHTTPMiddleware):
+    """Converts incoming HEAD probes into internal GET requests, returning verified headers with zero body."""
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        if request.method == "HEAD":
+            request.scope["method"] = "GET"
+            response = await call_next(request)
+            return Response(
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                media_type=response.media_type,
+            )
+        return await call_next(request)
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):

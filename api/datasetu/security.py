@@ -70,7 +70,10 @@ class HeadRequestMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         if request.method == "HEAD":
             request.scope["method"] = "GET"
-            response = await call_next(request)
+            try:
+                response = await call_next(request)
+            finally:
+                request.scope["method"] = "HEAD"
             return Response(
                 status_code=response.status_code,
                 headers=dict(response.headers),

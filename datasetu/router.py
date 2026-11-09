@@ -38,7 +38,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel, Field, create_model
 
-from starlette.middleware.gzip import GZipMiddleware
+from starlette.middleware.gzip import GZipMiddleware, IdentityResponder
+from starlette.types import Scope, Receive, Send
 
 from datasetu.ai import AIQueryEngine
 from datasetu.audit import CivicAuditEngine
@@ -142,6 +143,31 @@ def _build_pydantic_record_model(schema: List[Dict[str, str]]) -> Type[BaseModel
     return create_model("DatasetRecord", **field_definitions)
 
 
+
+class DownloadSafeGZipMiddleware(GZipMiddleware):
+    """GZipMiddleware that bypasses compression for binary and file download attachments to prevent browser interruptions."""
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        qs = scope.get("query_string", b"").decode("latin1").lower()
+        path = scope.get("path", "").lower()
+        if (
+            "format=csv" in qs
+            or "format=parquet" in qs
+            or "format=geojson" in qs
+            or "/geojson" in path
+            or "/sdk/" in path
+            or path.endswith(".csv")
+            or path.endswith(".parquet")
+        ):
+            responder = IdentityResponder(self.app, self.minimum_size)
+            await responder(scope, receive, send)
+            return
+        await super().__call__(scope, receive, send)
+
 def build_app(
     store: DatasetStore,
     source_info: Optional[Dict[str, Any]] = None,
@@ -166,7 +192,7 @@ def build_app(
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(RateLimitMiddleware, max_requests=300, window_seconds=60)
     app.add_middleware(RequestSizeLimitMiddleware, max_bytes=10 * 1024 * 1024)
-    app.add_middleware(GZipMiddleware, minimum_size=1000)
+    app.add_middleware(DownloadSafeGZipMiddleware, minimum_size=1000)
 
     # 2. CORS configuration for local developer tools and offline web interfaces
     app.add_middleware(
@@ -316,9 +342,11 @@ def build_app(
                 fname = "bharat_governance_master_2026.csv" if limit >= 5000 else f"datasetu_export_p{page}.csv"
                 return Response(
                     content=csv_bytes,
-                    media_type="text/csv",
+                    media_type="text/csv; charset=utf-8",
                     headers={
                         "Content-Disposition": f'attachment; filename="{fname}"',
+                        "Content-Length": str(len(csv_bytes)),
+                        "Cache-Control": "no-transform, public, max-age=0",
                         "X-Query-Latency-MS": str(query_ms),
                     },
                 )
@@ -337,6 +365,8 @@ def build_app(
                     media_type="application/octet-stream",
                     headers={
                         "Content-Disposition": f'attachment; filename="{fname}"',
+                        "Content-Length": str(len(parquet_bytes)),
+                        "Cache-Control": "no-transform, public, max-age=0",
                         "X-Query-Latency-MS": str(query_ms),
                     },
                 )
@@ -534,12 +564,104 @@ def build_app(
         tags=["Metadata"],
         summary="Official Local Government Directory (LGD) district gazetteer with administrative aliases",
     )
-    def get_lgd_crosswalk():
+    @app.get(
+        "/v1/lgd/districts",
+        tags=["Metadata"],
+        summary="Official Local Government Directory (LGD) district gazetteer with administrative aliases",
+    )
+    def get_lgd_crosswalk(
+        state: Optional[str] = Query(None, description="2-letter ISO state code (e.g. KA, UP, MH, PB) or State name"),
+        limit: int = Query(782, ge=1, le=1000, description="Max districts to return"),
+        offset: int = Query(0, ge=0, description="Pagination offset"),
+        q: Optional[str] = Query(None, description="Filter district name or alias"),
+        format: Optional[str] = Query("json", description="Output format: json, csv, parquet"),
+    ):
         import json
+        import io
+        import csv as _csv
+
         lgd_path = Path(__file__).parent / "data" / "lgd_districts.json"
-        if lgd_path.exists():
-            return json.loads(lgd_path.read_text(encoding="utf-8"))
-        return {"error": "LGD gazetteer not found"}
+        if not lgd_path.exists():
+            lgd_path = Path("/var/task/datasetu/data/lgd_districts.json")
+        if not lgd_path.exists():
+            lgd_path = Path("/var/task/api/datasetu/data/lgd_districts.json")
+
+        if not lgd_path.exists():
+            return {"error": "LGD gazetteer not found"}
+
+        raw_data = json.loads(lgd_path.read_text(encoding="utf-8"))
+        states = raw_data.get("states", {})
+        all_districts = raw_data.get("districts", [])
+
+        filtered = all_districts
+        if state and state.strip():
+            st_clean = state.strip().upper()
+            matched_codes = set()
+            for code, info in states.items():
+                if (
+                    info.get("iso", "").upper() == st_clean
+                    or info.get("name", "").upper() == st_clean
+                    or any(a.upper() == st_clean for a in info.get("aliases", []))
+                ):
+                    try:
+                        matched_codes.add(int(code))
+                    except ValueError:
+                        pass
+            if matched_codes:
+                filtered = [d for d in filtered if d.get("state_code") in matched_codes]
+            else:
+                filtered = [
+                    d for d in filtered
+                    if d.get("state_name", "").upper() == st_clean or st_clean in d.get("state_name", "").upper()
+                ]
+
+        if q and q.strip():
+            q_clean = q.strip().lower()
+            filtered = [
+                d for d in filtered
+                if q_clean in d.get("canonical_name", "").lower()
+                or any(q_clean in a.lower() for a in d.get("aliases", []))
+            ]
+
+        fmt = (format or "json").lower().strip()
+        if fmt == "csv":
+            out = io.StringIO()
+            writer = _csv.writer(out)
+            writer.writerow(["lgd_state_code", "state_name", "lgd_district_code", "canonical_name", "latitude", "longitude", "aliases"])
+            for d in filtered[offset : offset + limit]:
+                aliases_str = "; ".join(d.get("aliases", []))
+                writer.writerow([
+                    d.get("state_code", ""),
+                    d.get("state_name", ""),
+                    d.get("district_code", ""),
+                    d.get("canonical_name", ""),
+                    d.get("latitude", ""),
+                    d.get("longitude", ""),
+                    aliases_str,
+                ])
+            csv_bytes = out.getvalue().encode("utf-8")
+            return Response(
+                content=csv_bytes,
+                media_type="text/csv; charset=utf-8",
+                headers={
+                    "Content-Disposition": 'attachment; filename="mopr_lgd_master_directory_2026.csv"',
+                    "Content-Length": str(len(csv_bytes)),
+                    "Cache-Control": "no-transform, public, max-age=0",
+                },
+            )
+
+        return {
+            "meta": {
+                "source": "Official Local Government Directory (LGD) of India",
+                "authority": "Ministry of Panchayati Raj (MoPR), Government of India",
+                "total": len(filtered),
+                "limit": limit,
+                "offset": offset,
+                "state_filter": state,
+                "version": raw_data.get("_meta", {}).get("version", "2026.4-comprehensive"),
+            },
+            "districts": filtered[offset : offset + limit],
+        }
 
     # 10. Live CDC Refresh Trigger (Simulates Portal Mutation & Zero-Downtime Hot Swap)
     @app.post(
@@ -882,7 +1004,7 @@ def build_app(
         summary="Execute read-only ANSI SQL queries via GET against in-memory DuckDB columnar engine",
     )
     def execute_sql_get(
-        query: str = Query(..., description="Read-only SQL query (SELECT / WITH)"),
+        query: str = Query("SELECT * FROM dataset LIMIT 25", description="Read-only SQL query (SELECT / WITH)"),
         limit: int = Query(100, ge=1, le=5000, description="Max rows to return"),
     ):
         body = SQLQueryRequest(query=query)
@@ -943,20 +1065,164 @@ def build_app(
     )
     def query_catalog_dataset(
         dataset_id: str,
+        request: Request,
         page: int = Query(1, ge=1, description="Page number"),
-        limit: int = Query(50, ge=1, le=1000, description="Records per page"),
+        limit: int = Query(50, ge=1, le=50000, description="Records per page"),
+        sort: Optional[str] = Query(None, description="Sort column (prefix with '-' for descending)"),
+        fields: Optional[str] = Query(None, description="Comma-separated column names"),
+        q: Optional[str] = Query(None, description="Full-text search query across all string columns"),
+        format: Optional[str] = Query("json", description="Output format: json, csv, parquet, ndjson"),
     ):
+        import io
         clean_id = dataset_id.lower().replace("-", "_").replace(" ", "_")
         target_tbl = f"tbl_{clean_id}"
-        if clean_id not in store.catalog and target_tbl != store.table_name:
+        if clean_id not in store.catalog and target_tbl != store.table_name and clean_id != "master":
             raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found in catalog.")
 
         tbl_name = store.catalog[clean_id]["table_name"] if clean_id in store.catalog else store.table_name
+
+        cols_info = store.conn.execute(f"DESCRIBE {tbl_name}").fetchall()
+        col_names = [r[0] for r in cols_info]
+        col_types = {r[0]: str(r[1]).lower() for r in cols_info}
+
+        reserved_params = {"page", "limit", "sort", "fields", "q", "format"}
+        where_clauses = []
+        params = []
+
+        for p_key, p_val in request.query_params.items():
+            if p_key in reserved_params or p_val == "":
+                continue
+            op = "="
+            col_search = p_key
+            if p_key.endswith("__gte"):
+                op = ">="
+                col_search = p_key[:-5]
+            elif p_key.endswith("__lte"):
+                op = "<="
+                col_search = p_key[:-5]
+
+            matched_col = None
+            for c in col_names:
+                c_low = c.lower()
+                s_low = col_search.lower()
+                if c_low == s_low:
+                    matched_col = c
+                    break
+                if s_low in ("state", "state_name") and "state" in c_low and "status" not in c_low:
+                    matched_col = c
+                    break
+                if s_low in ("district", "district_name") and "district" in c_low:
+                    matched_col = c
+                    break
+                if s_low in ("sector", "scheme") and any(k in c_low for k in ["sector", "scheme", "mission"]):
+                    matched_col = c
+                    break
+                if s_low in c_low:
+                    matched_col = c
+                    break
+
+            if not matched_col:
+                continue
+
+            safe_c = _safe_sql_ident(matched_col)
+            c_type = col_types.get(matched_col, "varchar")
+            is_num = any(t in c_type for t in ["int", "double", "float", "decimal", "numeric", "real"])
+
+            if op == "=" and isinstance(p_val, str) and not is_num:
+                where_clauses.append(f"LOWER(CAST({safe_c} AS VARCHAR)) = LOWER(?)")
+                params.append(p_val)
+            elif is_num:
+                try:
+                    num_val = float(p_val) if "." in str(p_val) else int(p_val)
+                    where_clauses.append(f"{safe_c} {op} ?")
+                    params.append(num_val)
+                except ValueError:
+                    where_clauses.append(f"{safe_c} {op} ?")
+                    params.append(p_val)
+            else:
+                where_clauses.append(f"{safe_c} {op} ?")
+                params.append(p_val)
+
+        if q and q.strip():
+            q_clean = q.strip()[:256]
+            token = f"%{q_clean.lower()}%"
+            q_parts = []
+            for c in col_names:
+                q_parts.append(f"LOWER(CAST({_safe_sql_ident(c)} AS VARCHAR)) LIKE ?")
+                params.append(token)
+            if q_parts:
+                where_clauses.append(f"({' OR '.join(q_parts)})")
+
+        where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+
+        sort_sql = ""
+        if sort and sort.strip():
+            desc = sort.strip().startswith("-")
+            s_col = sort.strip()[1:] if desc else sort.strip()
+            for c in col_names:
+                if c.lower() == s_col.lower():
+                    sort_sql = f"ORDER BY {_safe_sql_ident(c)} {'DESC' if desc else 'ASC'}"
+                    break
+
         offset = (page - 1) * limit
-        total = store.conn.execute(f"SELECT COUNT(*) FROM {tbl_name}").fetchone()[0]
-        cursor = store.conn.execute(f"SELECT * FROM {tbl_name} LIMIT {limit} OFFSET {offset}")
+        total = store.conn.execute(f"SELECT COUNT(*) FROM {tbl_name} {where_sql}", params).fetchone()[0]
+
+        select_clause = "*"
+        if fields:
+            req_fields = [f.strip() for f in fields.split(",") if f.strip()]
+            valid_fields = [_safe_sql_ident(c) for c in col_names if c in req_fields or any(c.lower() == rf.lower() for rf in req_fields)]
+            if valid_fields:
+                select_clause = ", ".join(valid_fields)
+
+        data_sql = f"SELECT {select_clause} FROM {tbl_name} {where_sql} {sort_sql} LIMIT {limit} OFFSET {offset}"
+        t0 = time.perf_counter()
+        cursor = store.conn.execute(data_sql, params)
         cols = [d[0] for d in cursor.description]
-        rows = [dict(zip(cols, r)) for r in cursor.fetchall()]
+        fetched_rows = cursor.fetchall()
+        query_ms = round((time.perf_counter() - t0) * 1000.0, 2)
+
+        fmt = (format or "json").lower().strip()
+        if fmt == "csv":
+            import csv as _csv
+            out = io.StringIO()
+            writer = _csv.writer(out)
+            writer.writerow(cols)
+            for r in fetched_rows:
+                writer.writerow(r)
+            csv_bytes = out.getvalue().encode("utf-8")
+            fname = f"{clean_id}_2026.csv" if limit >= 5000 else f"{clean_id}_p{page}.csv"
+            return Response(
+                content=csv_bytes,
+                media_type="text/csv; charset=utf-8",
+                headers={
+                    "Content-Disposition": f'attachment; filename="{fname}"',
+                    "Content-Length": str(len(csv_bytes)),
+                    "Cache-Control": "no-transform, public, max-age=0",
+                    "X-Query-Latency-MS": str(query_ms),
+                },
+            )
+
+        if fmt == "parquet":
+            import pyarrow as pa
+            import pyarrow.parquet as pq
+            pydict = {col: [r[i] for r in fetched_rows] for i, col in enumerate(cols)}
+            pa_table = pa.Table.from_pydict(pydict)
+            buf = io.BytesIO()
+            pq.write_table(pa_table, buf, compression="snappy")
+            parquet_bytes = buf.getvalue()
+            fname = f"{clean_id}_2026.parquet" if limit >= 5000 else f"{clean_id}_p{page}.parquet"
+            return Response(
+                content=parquet_bytes,
+                media_type="application/octet-stream",
+                headers={
+                    "Content-Disposition": f'attachment; filename="{fname}"',
+                    "Content-Length": str(len(parquet_bytes)),
+                    "Cache-Control": "no-transform, public, max-age=0",
+                    "X-Query-Latency-MS": str(query_ms),
+                },
+            )
+
+        rows = [dict(zip(cols, r)) for r in fetched_rows]
         return {
             "meta": {
                 "dataset_id": dataset_id,
@@ -964,7 +1230,8 @@ def build_app(
                 "total": total,
                 "page": page,
                 "limit": limit,
-                "pages": (total + limit - 1) // limit,
+                "pages": max(1, (total + limit - 1) // limit),
+                "query_ms": query_ms,
             },
             "data": rows,
         }
@@ -1071,12 +1338,12 @@ def build_app(
         summary="Search across 300,000+ government and global open datasets (data.gov.in, NDAP, World Bank, etc.)",
     )
     def search_federated_datasets(
-        q: str = Query(..., description="Keywords to match across all 300,000+ datasets"),
+        q: Optional[str] = Query(None, description="Keywords to match across all 300,000+ datasets"),
         source: str = Query("all", description="Source filter (all, data_gov_in, ndap_niti, world_bank)"),
         limit: int = Query(25, ge=1, le=100, description="Max datasets to return"),
         offset: int = Query(0, ge=0, description="Pagination offset"),
     ):
-        return federation_engine.search_federated(query=q, source=source, limit=limit, offset=offset)
+        return federation_engine.search_federated(query=q or "", source=source, limit=limit, offset=offset)
 
     @app.post(
         "/v1/federation/compile",
